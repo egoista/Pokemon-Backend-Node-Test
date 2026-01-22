@@ -104,4 +104,48 @@ describe('PokemonResolver (e2e)', () => {
         expect(data.message).toBeDefined();
       });
   });
+
+  it('should list pokemons with filters and pagination', async () => {
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+
+    const query = `
+      query {
+        pokemons(
+          filter: { type: "Electric", name: "chu" }
+          pagination: { page: 1, limit: 1 }
+          sort: { sortBy: "name", sortOrder: "asc" }
+        ) {
+          data {
+            id
+            name
+            type
+          }
+          pagination {
+            page
+            limit
+            totalCount
+            totalPages
+          }
+        }
+      }
+    `;
+
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query })
+      .expect(200)
+      .expect((res) => {
+        const data = res.body.data.pokemons;
+        expect(data.data).toHaveLength(1);
+        expect(data.data[0].name).toBe('Pikachu');
+        expect(data.pagination).toEqual({
+          page: 1,
+          limit: 1,
+          totalCount: 2,
+          totalPages: 2,
+        });
+      });
+  });
 });

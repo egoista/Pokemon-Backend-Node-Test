@@ -1,12 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseFilters } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseFilters } from '@nestjs/common';
 import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemon.use-case';
 import { GetPokemonByIdUseCase } from '../../../application/pokemon/get-pokemon-by-id.use-case';
 import { ListPokemonsUseCase } from '../../../application/pokemon/list-pokemons.use-case';
 import { UpdatePokemonUseCase } from '../../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../../application/pokemon/delete-pokemon.use-case';
 import { CreatePokemonDto } from '../dtos/pokemon.dto';
+import { ListPokemonsQueryDto } from '../dtos/list-pokemons-query.dto';
 import { UpdatePokemonDto } from '../dtos/update-pokemon.dto';
 import { PokemonPresenter } from '../presenters/pokemon.presenter';
+import { PokemonListPresenter } from '../presenters/pokemon-list.presenter';
 import { PokemonHttpExceptionFilter } from './pokemon.exception-filter';
 
 @Controller('pokemons')
@@ -27,9 +29,9 @@ export class PokemonController {
     }
 
     @Get()
-    async list(): Promise<PokemonPresenter[]> {
-        const pokemons = await this.listPokemonsUseCase.execute();
-        return pokemons.map(p => new PokemonPresenter(p));
+    async list(@Query() query: ListPokemonsQueryDto): Promise<PokemonListPresenter> {
+        const result = await this.listPokemonsUseCase.execute(query);
+        return new PokemonListPresenter(result);
     }
 
     @Get(':id')

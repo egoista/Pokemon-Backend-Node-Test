@@ -88,4 +88,25 @@ describe('PokemonController (e2e)', () => {
                 expect(res.body.statusCode).toBe(400);
             });
     });
+
+    it('/pokemons (GET) - supports filters and pagination', async () => {
+        await repo.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
+        await repo.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
+        await repo.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+
+        return request(app.getHttpServer())
+            .get('/pokemons')
+            .query({ type: 'Electric', name: 'chu', page: 1, limit: 1, sortBy: 'name', sortOrder: 'asc' })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.data).toHaveLength(1);
+                expect(res.body.data[0].name).toBe('Pikachu');
+                expect(res.body.pagination).toEqual({
+                    page: 1,
+                    limit: 1,
+                    totalCount: 2,
+                    totalPages: 2,
+                });
+            });
+    });
 });

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PokemonRepository } from '../../../domain/pokemon/pokemon.repository.interface';
+import { PokemonListFilters, PokemonListResult, PokemonRepository } from '../../../domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -67,6 +67,37 @@ export class PokemonRepositoryPrisma implements PokemonRepository {
         return prismaPokemons.map(
             (p) => new Pokemon(p.id, p.name, p.type, p.created_at)
         );
+    }
+
+    async findWithFilters(filters: PokemonListFilters): Promise<PokemonListResult> {
+        const where: Record<string, unknown> = {};
+
+        if (filters.type) {
+            where.type = filters.type;
+        }
+
+        if (filters.name) {
+            where.name = {
+                contains: filters.name,
+            };
+        }
+
+        const [totalCount, prismaPokemons] = await this.prisma.$transaction([
+            this.prisma.pokemon.count({ where }),
+            this.prisma.pokemon.findMany({
+                where,
+                orderBy: { [filters.sortBy]: filters.sortOrder },
+                skip: filters.offset,
+                take: filters.limit,
+            }),
+        ]);
+
+        return {
+            totalCount,
+            data: prismaPokemons.map(
+                (p) => new Pokemon(p.id, p.name, p.type, p.created_at)
+            ),
+        };
     }
 
     async update(pokemon: Pokemon): Promise<Pokemon> {

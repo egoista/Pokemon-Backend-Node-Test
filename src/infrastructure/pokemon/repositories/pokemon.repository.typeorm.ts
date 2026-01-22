@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PokemonRepository } from '../../../domain/pokemon/pokemon.repository.interface';
+import { PokemonListFilters, PokemonListResult, PokemonRepository } from '../../../domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 import { PokemonEntity } from '../entities/pokemon.entity.typeorm';
 
@@ -50,6 +50,34 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
         return entities.map(
             (e) => new Pokemon(e.id, e.name, e.type, e.created_at)
         );
+    }
+
+    async findWithFilters(filters: PokemonListFilters): Promise<PokemonListResult> {
+        const query = this.repository.createQueryBuilder('pokemon');
+
+        if (filters.type) {
+            query.andWhere('pokemon.type = :type', { type: filters.type });
+        }
+
+        if (filters.name) {
+            query.andWhere('LOWER(pokemon.name) LIKE :name', {
+                name: `%${filters.name.toLowerCase()}%`,
+            });
+        }
+
+        query
+            .orderBy(`pokemon.${filters.sortBy}`, filters.sortOrder.toUpperCase() as 'ASC' | 'DESC')
+            .skip(filters.offset)
+            .take(filters.limit);
+
+        const [entities, totalCount] = await query.getManyAndCount();
+
+        return {
+            totalCount,
+            data: entities.map(
+                (e) => new Pokemon(e.id, e.name, e.type, e.created_at)
+            ),
+        };
     }
 
     async save(pokemon: Pokemon): Promise<Pokemon> {
