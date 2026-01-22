@@ -4,6 +4,10 @@ import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
 export class InMemoryPokemonRepository implements PokemonRepository {
     private pokemons: Pokemon[] = [];
 
+    clear(): void {
+        this.pokemons = [];
+    }
+
     async findByName(name: string): Promise<Pokemon | null> {
         const found = this.pokemons.find((p) => p.name === name);
         return found || null;

@@ -12,7 +12,7 @@ describe('PokemonController (e2e)', () => {
     let app: INestApplication;
     let repo: InMemoryPokemonRepository;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         repo = new InMemoryPokemonRepository();
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,7 +25,11 @@ describe('PokemonController (e2e)', () => {
         app = await createTestApp(moduleFixture);
     });
 
-    afterEach(async () => {
+    beforeEach(() => {
+        repo.clear();
+    });
+
+    afterAll(async () => {
         await app.close();
     });
 
