@@ -5,6 +5,7 @@ import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemo
 import { ListPokemonsUseCase } from '../../../application/pokemon/list-pokemons.use-case';
 import { UpdatePokemonUseCase } from '../../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../../application/pokemon/delete-pokemon.use-case';
+import { ImportPokemonByIdUseCase } from '../../../application/pokemon/import-pokemon-by-id.use-case';
 import { CreatePokemonInput, UpdatePokemonInput } from '../../graphql/generated/graphql.schema';
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../../domain/pokemon/pokemon.errors';
 import { PokemonPresenter } from '../presenters/pokemon.presenter';
@@ -50,6 +51,7 @@ export class PokemonResolver {
         private readonly listPokemonsUseCase: ListPokemonsUseCase,
         private readonly updatePokemonUseCase: UpdatePokemonUseCase,
         private readonly deletePokemonUseCase: DeletePokemonUseCase,
+        private readonly importPokemonByIdUseCase: ImportPokemonByIdUseCase,
     ) { }
 
     @Query('pokemons')
@@ -121,6 +123,17 @@ export class PokemonResolver {
             if (error instanceof PokemonNotFoundError) {
                 throw error;
             }
+            throw error;
+        }
+    }
+
+    @Mutation('importPokemon')
+    async importPokemon(@Args('id') id: number) {
+        try {
+            const pokemon = await this.importPokemonByIdUseCase.execute({ id: Number(id) });
+            return new PokemonPresenter(pokemon);
+        } catch (error) {
+            // Let the filter/interceptor handle mapping, or rethrow
             throw error;
         }
     }

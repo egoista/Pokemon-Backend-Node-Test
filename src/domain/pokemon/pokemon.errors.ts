@@ -33,4 +33,25 @@ export class InvalidPokemonTypeError extends Error {
     }
 }
 
+export class PokemonNotFoundInExternalApiError extends Error {
+    constructor(id: number) {
+        super(`Pokemon with id ${id} not found in external API.`);
+        this.name = 'PokemonNotFoundInExternalApiError';
+    }
+}
+
+export class ExternalApiTimeoutError extends Error {
+    constructor() {
+        super('External API request timed out.');
+        this.name = 'ExternalApiTimeoutError';
+    }
+}
+
+export class ExternalApiError extends Error {
+    constructor(message: string) {
+        super(`External API error: ${message}`);
+        this.name = 'ExternalApiError';
+    }
+}
+
 

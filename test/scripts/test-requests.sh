@@ -36,11 +36,20 @@ echo "5. Deleting Pokemon (901) via REST..."
 curl -X DELETE "$BASE_URL/pokemons/901"
 echo -e "\n"
 
+echo "6. Importing Pokemon (158 - Totodile) via REST..."
+curl -X POST "$BASE_URL/pokemons/import" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 158
+  }'
+echo -e "\n"
+
+
 echo "--------------------------------------------------"
 echo "🧪 Testing GraphQL API"
 echo "--------------------------------------------------"
 
-echo "6. Creating Pokemon (Mewtwo-Y) via GraphQL..."
+echo "7. Creating Pokemon (Mewtwo-Y) via GraphQL..."
 curl -X POST "$BASE_URL/graphql" \
   -H "Content-Type: application/json" \
   -d '{
@@ -48,7 +57,7 @@ curl -X POST "$BASE_URL/graphql" \
   }'
 echo -e "\n"
 
-echo "7. Listing Pokemons via GraphQL..."
+echo "8. Listing Pokemons via GraphQL..."
 curl -X POST "$BASE_URL/graphql" \
   -H "Content-Type: application/json" \
   -d '{
@@ -56,7 +65,7 @@ curl -X POST "$BASE_URL/graphql" \
   }'
 echo -e "\n"
 
-echo "8. Updating Pokemon (Mewtwo-Y) types via GraphQL..."
+echo "9. Updating Pokemon (Mewtwo-Y) types via GraphQL..."
 curl -X POST "$BASE_URL/graphql" \
   -H "Content-Type: application/json" \
   -d '{
@@ -64,10 +73,18 @@ curl -X POST "$BASE_URL/graphql" \
   }'
 echo -e "\n"
 
-echo "9. Deleting Pokemon (902) via GraphQL..."
+echo "10. Deleting Pokemon (902) via GraphQL..."
 curl -X POST "$BASE_URL/graphql" \
   -H "Content-Type: application/json" \
   -d '{
     "query": "mutation { deletePokemon(id: 902) }"
+  }'
+echo -e "\n"
+
+echo "11. Importing Pokemon (1 - Bulbasaur) via GraphQL..."
+curl -X POST "$BASE_URL/graphql" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "mutation { importPokemon(id: 1) { id name types { name } } }"
   }'
 echo -e "\n"

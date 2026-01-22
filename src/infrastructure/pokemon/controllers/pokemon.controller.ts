@@ -4,7 +4,9 @@ import { GetPokemonByIdUseCase } from '../../../application/pokemon/get-pokemon-
 import { ListPokemonsUseCase } from '../../../application/pokemon/list-pokemons.use-case';
 import { UpdatePokemonUseCase } from '../../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../../application/pokemon/delete-pokemon.use-case';
+import { ImportPokemonByIdUseCase } from '../../../application/pokemon/import-pokemon-by-id.use-case';
 import { CreatePokemonDto } from '../dtos/pokemon.dto';
+import { ImportPokemonDto } from '../dtos/import-pokemon.dto';
 import { ListPokemonsQueryDto } from '../dtos/list-pokemons-query.dto';
 import { UpdatePokemonDto } from '../dtos/update-pokemon.dto';
 import { PokemonPresenter } from '../presenters/pokemon.presenter';
@@ -22,6 +24,7 @@ export class PokemonController {
         private readonly listPokemonsUseCase: ListPokemonsUseCase,
         private readonly updatePokemonUseCase: UpdatePokemonUseCase,
         private readonly deletePokemonUseCase: DeletePokemonUseCase,
+        private readonly importPokemonByIdUseCase: ImportPokemonByIdUseCase,
     ) { }
 
     @Post()
@@ -54,5 +57,11 @@ export class PokemonController {
     @Delete(':id')
     async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.deletePokemonUseCase.execute(id);
+    }
+
+    @Post('import')
+    async import(@Body() body: ImportPokemonDto): Promise<PokemonPresenter> {
+        const pokemon = await this.importPokemonByIdUseCase.execute(body);
+        return new PokemonPresenter(pokemon);
     }
 }

@@ -217,6 +217,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/RateLimitError'
 
+  /pokemons/import:
+    post:
+      summary: Import a Pokemon triggers a fetch from PokeAPI and adds/updates the record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportPokemonInput'
+      responses:
+        '200':
+          description: Pokemon imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pokemon'
+        '400':
+          description: Invalid input (e.g. non-positive ID)
+        '404':
+          description: Pokemon not found in PokeAPI
+        '502':
+          description: Bad Gateway - Failed to fetch from PokeAPI
+        '504':
+          description: Gateway Timeout - PokeAPI request timed out
+
 components:
   schemas:
     Type:
@@ -277,6 +302,16 @@ components:
           items:
             type: string
       additionalProperties: false
+
+    ImportPokemonInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the Pokemon to import from PokeAPI
+          example: 158
+      required:
+        - id
 
     PokemonListResponse:
       type: object

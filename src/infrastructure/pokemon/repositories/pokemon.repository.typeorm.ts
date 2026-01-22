@@ -118,6 +118,11 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
         return this.mapToDomain(updated);
     }
 
+    async upsert(pokemon: Pokemon): Promise<Pokemon> {
+        // For TypeORM, save() acts as upsert if ID is present
+        return this.save(pokemon);
+    }
+
     async delete(id: number): Promise<void> {
         await this.repository.delete({ id });
     }
