@@ -3,6 +3,8 @@ import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.inter
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
 
+import { Type } from '../../domain/type.entity';
+
 describe('GetPokemonByIdUseCase', () => {
     let useCase: GetPokemonByIdUseCase;
     let pokemonRepository: PokemonRepository;
@@ -23,7 +25,7 @@ describe('GetPokemonByIdUseCase', () => {
     it('should return pokemon when it exists', async () => {
         // Arrange
         const pokemonId = 1;
-        const expectedPokemon = new Pokemon(pokemonId, 'Pikachu', 'Electric', new Date());
+        const expectedPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(expectedPokemon);
 
         // Act

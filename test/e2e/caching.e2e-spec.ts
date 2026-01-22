@@ -90,7 +90,7 @@ describe('Caching Strategy (e2e)', () => {
             const newPokemon = {
                 id: 9999,
                 name: 'PikachusCousin',
-                type: 'Electric',
+                types: ['Electric'],
                 attack: 50,
                 defense: 40,
                 hp: 35,

@@ -16,6 +16,17 @@ npm run start:dev
 npm run test
 ```
 
+### Manual Curl Tests
+
+There is a shell script available to run some manual curl requests against the REST and GraphQL APIs.
+
+```bash
+./test/scripts/test-requests.sh
+```
+
+This script performs Create, List, Update, and Delete operations.
+
+
 ## Architecture Constitution (Summary)
 
 These are the core, non-negotiable decisions for the project. Each item links to the ADR.

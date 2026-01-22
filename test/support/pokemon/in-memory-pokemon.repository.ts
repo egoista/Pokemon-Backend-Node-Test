@@ -31,7 +31,9 @@ export class InMemoryPokemonRepository implements PokemonRepository {
         let filtered = [...this.pokemons];
 
         if (filters.type) {
-            filtered = filtered.filter((pokemon) => pokemon.type === filters.type);
+            filtered = filtered.filter((pokemon) =>
+                pokemon.types.some((t) => t.name === filters.type)
+            );
         }
 
         if (filters.name) {
@@ -46,7 +48,10 @@ export class InMemoryPokemonRepository implements PokemonRepository {
                     comparison = a.id - b.id;
                     break;
                 case 'type':
-                    comparison = a.type.localeCompare(b.type);
+                    // Sort by first type name
+                    const typeA = a.types[0]?.name || '';
+                    const typeB = b.types[0]?.name || '';
+                    comparison = typeA.localeCompare(typeB);
                     break;
                 case 'created_at':
                     comparison = a.createdAt.getTime() - b.createdAt.getTime();

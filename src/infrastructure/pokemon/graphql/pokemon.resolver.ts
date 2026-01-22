@@ -29,7 +29,7 @@ interface CreatePokemonArgs {
     input: {
         id: number;
         name: string;
-        type: string;
+        types: string[];
     };
 }
 
@@ -37,7 +37,7 @@ interface UpdatePokemonArgs {
     input: {
         id: number;
         name?: string;
-        type?: string;
+        types?: string[];
     };
 }
 
@@ -76,7 +76,7 @@ export class PokemonResolver {
             const pokemon = await this.createPokemonUseCase.execute({
                 id: Number(input.id),
                 name: input.name,
-                type: input.type,
+                types: input.types,
             });
             return new PokemonPresenter(pokemon);
         } catch (error) {
@@ -97,7 +97,7 @@ export class PokemonResolver {
             const pokemon = await this.updatePokemonUseCase.execute({
                 id: Number(input.id),
                 name: input.name,
-                type: input.type,
+                types: input.types,
             });
             return new PokemonPresenter(pokemon);
         } catch (error) {
