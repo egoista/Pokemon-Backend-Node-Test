@@ -1,3 +1,4 @@
+
 import { Resolver, Mutation, Query, Args, ResolveField } from '@nestjs/graphql';
 import { UseFilters } from '@nestjs/common';
 import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemon.use-case';
@@ -22,6 +23,22 @@ interface PaginationInput {
 interface SortInput {
     sortBy?: string;
     sortOrder?: string;
+}
+
+interface CreatePokemonArgs {
+    input: {
+        id: number;
+        name: string;
+        type: string;
+    };
+}
+
+interface UpdatePokemonArgs {
+    input: {
+        id: number;
+        name?: string;
+        type?: string;
+    };
 }
 
 // ARCH: GraphQL adapter only; use cases remain transport-agnostic.
@@ -53,9 +70,14 @@ export class PokemonResolver {
     }
 
     @Mutation('createPokemon')
-    async create(@Args('input') input: CreatePokemonInput) {
+    async create(@Args() args: CreatePokemonArgs) {
         try {
-            const pokemon = await this.createPokemonUseCase.execute(input);
+            const input = args.input;
+            const pokemon = await this.createPokemonUseCase.execute({
+                id: Number(input.id),
+                name: input.name,
+                type: input.type,
+            });
             return new PokemonPresenter(pokemon);
         } catch (error) {
             if (error instanceof PokemonAlreadyExistsError) {
@@ -69,9 +91,14 @@ export class PokemonResolver {
     }
 
     @Mutation('updatePokemon')
-    async update(@Args('input') input: UpdatePokemonInput) {
+    async update(@Args() args: UpdatePokemonArgs) {
         try {
-            const pokemon = await this.updatePokemonUseCase.execute(input);
+            const input = args.input;
+            const pokemon = await this.updatePokemonUseCase.execute({
+                id: Number(input.id),
+                name: input.name,
+                type: input.type,
+            });
             return new PokemonPresenter(pokemon);
         } catch (error) {
             if (error instanceof PokemonNotFoundError) {
@@ -87,7 +114,8 @@ export class PokemonResolver {
     @Mutation('deletePokemon')
     async delete(@Args('id') id: number) {
         try {
-            await this.deletePokemonUseCase.execute(id);
+            // Ensure ID is a number (GraphQL may pass it as string)
+            await this.deletePokemonUseCase.execute(Number(id));
             return true;
         } catch (error) {
             if (error instanceof PokemonNotFoundError) {

@@ -6,6 +6,8 @@ import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/rep
 import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
 import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
 
+import { createTestApp } from '../../support/create-test-app';
+
 describe('PokemonResolver (e2e)', () => {
   let app: INestApplication;
   let fakeRepository: InMemoryPokemonRepository;
@@ -20,8 +22,7 @@ describe('PokemonResolver (e2e)', () => {
       .useValue(fakeRepository)
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await createTestApp(moduleFixture);
   });
 
   beforeEach(() => {
