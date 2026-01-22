@@ -4,12 +4,15 @@ import { PokemonRepositoryPrisma } from '../../infrastructure/pokemon/pokemon.re
 import { PrismaModule } from '../../modules/prisma/prisma.module';
 import { CreatePokemonUseCase } from '../../application/pokemon/create-pokemon.use-case';
 import { PrismaService } from '../../modules/prisma/prisma.service';
+import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructure/pokemon/pokemon.resolver';
 
 @Module({
     imports: [PrismaModule],
     controllers: [PokemonController],
     providers: [
         PokemonRepositoryPrisma,
+        PokemonResolver,
+        CreatePokemonResultResolver,
         {
             provide: CreatePokemonUseCase,
             useFactory: (repo: PokemonRepositoryPrisma) => {

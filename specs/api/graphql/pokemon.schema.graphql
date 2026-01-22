@@ -5,7 +5,16 @@ type Pokemon {
   created_at: String!
 }
 
+type PokemonAlreadyExistsError {
+  message: String!
+}
+
+type PokemonNotFoundError {
+  message: String!
+}
+
 input CreatePokemonInput {
+  id: Int!
   name: String!
   type: String!
 }
@@ -16,12 +25,14 @@ input UpdatePokemonInput {
   type: String
 }
 
+union CreatePokemonResult = Pokemon | PokemonAlreadyExistsError
+
 type Query {
   pokemons: [Pokemon!]!
 }
 
 type Mutation {
-  createPokemon(input: CreatePokemonInput!): Pokemon!
+  createPokemon(input: CreatePokemonInput!): CreatePokemonResult!
   updatePokemon(input: UpdatePokemonInput!): Pokemon!
   deletePokemon(id: Int!): Boolean!
 }
