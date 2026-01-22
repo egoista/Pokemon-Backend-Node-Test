@@ -11,16 +11,105 @@ servers:
 paths:
   /pokemons:
     get:
-      summary: List all Pokemons
+      summary: List all Pokemons with optional filters, pagination, and sorting
+      parameters:
+        - name: type
+          in: query
+          description: Filter by Pokemon type (exact match)
+          required: false
+          schema:
+            type: string
+          example: Electric
+        - name: name
+          in: query
+          description: Filter by partial name (case-insensitive)
+          required: false
+          schema:
+            type: string
+          example: pika
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            default: name
+            enum: [name]
+        - name: sortOrder
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            default: asc
+            enum: [asc, desc]
+        - name: page
+          in: query
+          description: Page number (starts at 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         '200':
-          description: A list of Pokemons
+          description: A paginated list of Pokemons
+          headers:
+            X-RateLimit-Limit:
+              description: Maximum requests allowed per minute
+              schema:
+                type: integer
+              example: 100
+            X-RateLimit-Remaining:
+              description: Remaining requests in current window
+              schema:
+                type: integer
+              example: 87
+            X-RateLimit-Reset:
+              description: Unix timestamp when rate limit resets
+              schema:
+                type: integer
+              example: 1674567890
+            Cache-Control:
+              description: Cache directives
+              schema:
+                type: string
+              example: public, max-age=300
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pokemon'
+                $ref: '#/components/schemas/PokemonListResponse'
+        '400':
+          description: Invalid query parameters
+        '429':
+          description: Rate limit exceeded
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
 
     post:
       summary: Create a new Pokemon
@@ -33,6 +122,16 @@ paths:
       responses:
         '201':
           description: Pokemon created successfully
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -41,6 +140,12 @@ paths:
           description: Invalid input data
         '409':
           description: Pokemon with the same name already exists
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
 
   /pokemons/{id}:
     parameters:
@@ -61,6 +166,16 @@ paths:
       responses:
         '200':
           description: Pokemon updated successfully
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
           content:
             application/json:
               schema:
@@ -71,14 +186,36 @@ paths:
           description: Pokemon not found
         '409':
           description: Pokemon name already exists
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
 
     delete:
       summary: Delete a Pokemon
       responses:
         '204':
           description: Pokemon deleted successfully
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: integer
         '404':
           description: Pokemon not found
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
 
 components:
   schemas:
@@ -119,3 +256,58 @@ components:
         type:
           type: string
       additionalProperties: false
+
+    PokemonListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pokemon'
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+      required:
+        - data
+        - pagination
+
+    PaginationMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          description: Items per page
+          example: 20
+        totalCount:
+          type: integer
+          description: Total number of items
+          example: 150
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 8
+      required:
+        - page
+        - limit
+        - totalCount
+        - totalPages
+
+    RateLimitError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 429
+        message:
+          type: string
+          example: Rate limit exceeded. Please try again later.
+        error:
+          type: string
+          example: Too Many Requests
+      required:
+        - statusCode
+        - message
+        - error

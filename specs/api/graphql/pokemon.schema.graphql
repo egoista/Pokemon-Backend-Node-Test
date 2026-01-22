@@ -25,10 +25,41 @@ input UpdatePokemonInput {
   type: String
 }
 
+input PokemonFilterInput {
+  type: String
+  name: String
+}
+
+input PaginationInput {
+  page: Int
+  limit: Int
+}
+
+input SortInput {
+  sortBy: String
+  sortOrder: String
+}
+
+type PaginationMetadata {
+  page: Int!
+  limit: Int!
+  totalCount: Int!
+  totalPages: Int!
+}
+
+type PokemonListResult {
+  data: [Pokemon!]!
+  pagination: PaginationMetadata!
+}
+
 union CreatePokemonResult = Pokemon | PokemonAlreadyExistsError
 
 type Query {
-  pokemons: [Pokemon!]!
+  pokemons(
+    filter: PokemonFilterInput
+    pagination: PaginationInput
+    sort: SortInput
+  ): PokemonListResult!
 }
 
 type Mutation {
