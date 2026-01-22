@@ -10,8 +10,6 @@ export class CreatePokemonsTable1742154148799 implements MigrationInterface {
             name: 'id',
             type: 'int',
             isPrimary: true,
-            isGenerated: true,
-            generationStrategy: 'increment',
           },
           {
             name: 'name',
@@ -23,11 +21,6 @@ export class CreatePokemonsTable1742154148799 implements MigrationInterface {
           },
           {
             name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-          {
-            name: 'updated_at',
             type: 'timestamp',
             default: 'now()',
           },

@@ -109,4 +109,19 @@ describe('PokemonController (e2e)', () => {
                 });
             });
     });
+
+    it('/pokemons (GET) - supports sort by id desc', async () => {
+        await repo.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
+        await repo.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
+        await repo.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+
+        return request(app.getHttpServer())
+            .get('/pokemons')
+            .query({ sortBy: 'id', sortOrder: 'desc' })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.data).toHaveLength(3);
+                expect(res.body.data[0].id).toBe(3);
+            });
+    });
 });

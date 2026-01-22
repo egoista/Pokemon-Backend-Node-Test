@@ -5,7 +5,7 @@ import {
 } from './pokemon.errors';
 
 export class Pokemon {
-    private readonly _id: number; // Pokédex number (domain identifier)
+    private readonly _id: number;
     private _name: string;
     private _type: string;
     private readonly _createdAt: Date;
@@ -26,8 +26,6 @@ export class Pokemon {
         this._createdAt = createdAt ?? new Date();
     }
 
-    /* ===== Getters ===== */
-
     get id(): number {
         return this._id;
     }
@@ -44,8 +42,6 @@ export class Pokemon {
         return this._createdAt;
     }
 
-    /* ===== Setters / Behaviors ===== */
-
     set name(value: string) {
         this.validateName(value);
         this._name = value;
@@ -55,8 +51,6 @@ export class Pokemon {
         this.validateType(value);
         this._type = value;
     }
-
-    /* ===== Validation ===== */
 
     private validateId(id: number): void {
         if (!Number.isInteger(id) || id <= 0) {

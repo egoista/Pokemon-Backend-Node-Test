@@ -4,15 +4,15 @@ import {
     PokemonListResult,
     PokemonRepository,
 } from '../../domain/pokemon/pokemon.repository.interface';
-import { ValidationError } from '../../domain/pokemon/pokemon.errors';
+import { normalizeListQuery } from '../shared/query/list-query';
 
 export interface ListPokemonsQuery {
     type?: string;
     name?: string;
     sortBy?: string;
     sortOrder?: string;
-    page?: number | string;
-    limit?: number | string;
+    page?: number;
+    limit?: number;
 }
 
 export interface ListPokemonsResult {
@@ -25,60 +25,41 @@ export interface ListPokemonsResult {
     };
 }
 
+type PokemonSortField = 'name' | 'id' | 'type' | 'created_at';
+
 export class ListPokemonsUseCase {
     constructor(
         private readonly pokemonRepository: PokemonRepository
     ) { }
 
     async execute(query: ListPokemonsQuery = {}): Promise<ListPokemonsResult> {
-        const page = this.parsePositiveInt(query.page ?? 1, 'page');
-        const limit = this.parsePositiveInt(query.limit ?? 20, 'limit');
+        const list = normalizeListQuery<PokemonSortField>(query, {
+            defaultSortBy: 'name',
+            allowedSortBy: ['name', 'id', 'type', 'created_at'] as const,
+            defaultLimit: 20,
+            maxLimit: 100,
+        });
 
-        if (limit < 1 || limit > 100) {
-            throw new ValidationError('limit must be between 1 and 100.');
-        }
-
-        const sortBy = query.sortBy ?? 'name';
-        if (sortBy !== 'name') {
-            throw new ValidationError('sortBy must be a valid Pokemon field.');
-        }
-
-        const sortOrder = (query.sortOrder ?? 'asc').toLowerCase();
-        if (sortOrder !== 'asc' && sortOrder !== 'desc') {
-            throw new ValidationError('sortOrder must be either "asc" or "desc".');
-        }
-
-        const offset = (page - 1) * limit;
         const filters: PokemonListFilters = {
             type: query.type,
             name: query.name,
-            sortBy: 'name',
-            sortOrder: sortOrder as 'asc' | 'desc',
-            offset,
-            limit,
+            sortBy: list.sortBy,
+            sortOrder: list.sortOrder,
+            offset: list.offset,
+            limit: list.limit,
         };
 
         const result: PokemonListResult = await this.pokemonRepository.findWithFilters(filters);
-        const totalPages = Math.ceil(result.totalCount / limit);
+        const totalPages = Math.ceil(result.totalCount / list.limit);
 
         return {
             data: result.data,
             pagination: {
-                page,
-                limit,
+                page: list.page,
+                limit: list.limit,
                 totalCount: result.totalCount,
                 totalPages,
             },
         };
-    }
-
-    private parsePositiveInt(value: number | string, field: string): number {
-        const parsed = typeof value === 'string' ? Number(value) : value;
-
-        if (!Number.isInteger(parsed) || parsed < 1) {
-            throw new ValidationError(`${field} must be a positive integer.`);
-        }
-
-        return parsed;
     }
 }

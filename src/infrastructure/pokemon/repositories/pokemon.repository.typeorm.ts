@@ -5,6 +5,8 @@ import { PokemonListFilters, PokemonListResult, PokemonRepository } from '../../
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 import { PokemonEntity } from '../entities/pokemon.entity.typeorm';
 
+// ARCH: Infrastructure adapter mapping persistence <-> domain entity.
+// ADR-004: Multiple ORMs via repository abstraction. ADR-012: Domain identifier as PK.
 @Injectable()
 export class PokemonRepositoryTypeORM implements PokemonRepository {
     constructor(

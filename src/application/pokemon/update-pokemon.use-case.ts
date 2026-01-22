@@ -1,6 +1,7 @@
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
+import { ValidationError } from '../shared/errors/application.errors';
 
 export interface UpdatePokemonInput {
     id: number;
@@ -16,18 +17,15 @@ export class UpdatePokemonUseCase {
     async execute(input: UpdatePokemonInput): Promise<Pokemon> {
         const { id, name, type } = input;
 
-        // 1. Validate that at least one field is provided
         if (name === undefined && type === undefined) {
-            throw new Error('At least one field (name or type) must be provided for update.');
+            throw new ValidationError('At least one field (name or type) must be provided for update.');
         }
 
-        // 2. Find existing Pokemon
         const pokemon = await this.pokemonRepository.findById(id);
         if (!pokemon) {
             throw new PokemonNotFoundError(id);
         }
 
-        // 3. Check name uniqueness if name is being changed
         if (name !== undefined && name !== pokemon.name) {
             const existingPokemon = await this.pokemonRepository.findByName(name);
             if (existingPokemon) {
@@ -35,7 +33,6 @@ export class UpdatePokemonUseCase {
             }
         }
 
-        // 4. Update entity (setters validate the data)
         if (name !== undefined) {
             pokemon.name = name;
         }
@@ -43,7 +40,6 @@ export class UpdatePokemonUseCase {
             pokemon.type = type;
         }
 
-        // 5. Persist and return
         return this.pokemonRepository.update(pokemon);
     }
 }

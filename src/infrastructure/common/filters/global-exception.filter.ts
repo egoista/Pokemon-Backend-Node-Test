@@ -8,6 +8,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 
+// ARCH: Global HTTP safety net for unhandled exceptions.
+// ADR-014: HTTP error mapping via filters.
+// SEC: Avoid leaking stack traces or internal details in 500 responses.
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(GlobalExceptionFilter.name);
@@ -28,7 +31,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
             this.logger.error(exception);
-            // Ensure we don't leak stack traces for 500 errors
+            // SEC: Avoid leaking stack traces or internal details in 500 responses.
             response.status(status).json({
                 statusCode: 500,
                 message: 'Internal server error',

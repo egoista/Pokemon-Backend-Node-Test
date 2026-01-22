@@ -11,6 +11,8 @@ import { PokemonPresenter } from '../presenters/pokemon.presenter';
 import { PokemonListPresenter } from '../presenters/pokemon-list.presenter';
 import { PokemonHttpExceptionFilter } from './pokemon.exception-filter';
 
+// ARCH: HTTP adapter only; business rules live in use cases.
+// ADR-002: Clean Architecture. ADR-003: REST + GraphQL adapters. ADR-014: HTTP error mapping via filters.
 @Controller('pokemons')
 @UseFilters(PokemonHttpExceptionFilter)
 export class PokemonController {

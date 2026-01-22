@@ -1,44 +1,57 @@
-# Candidate Interview Project
+# Project Readme (Interview Test)
 
-## Project Overview
+This repository is a technical interview project that demonstrates Clean Architecture with
+REST and GraphQL adapters, plus multiple ORM implementations behind a repository abstraction.
 
-Welcome to the interview project! This project is designed to assess your skills in building a backend API using Node.
-
-### Goals
-
-- Understand your proficiency with Node.
-- Assess your ability to design and implement a scalable API.
-- Evaluate your coding practices and problem-solving approach.
-
-## Installation
+## Quick Start
 
 ```bash
-$ npm install
-or
-$ yarn
+npm install
+npm run start:dev
 ```
 
-## (Optional) generate prisma files
+## Tests
 
 ```bash
-$ npm run prisma generate
-or
-$ yarn prisma generate
-
+npm run test
 ```
 
-## Running the app
+## Architecture Constitution (Summary)
+
+These are the core, non-negotiable decisions for the project. Each item links to the ADR.
+
+- Clean Architecture with inward dependencies. [ADR-002](docs/adrs/002-adopt-clean-architecture.md)
+- Use cases are exposed via REST and GraphQL adapters. [ADR-003](docs/adrs/003-expose-use-cases-via-both-rest-and-graphql.md)
+- Multiple ORMs supported behind a repository interface. [ADR-004](docs/adrs/004-support-multiple-orms-via-repository-abstractions.md)
+- Manual composition root (explicit wiring). [ADR-006](docs/adrs/006-manual-composition-root.md)
+- Domain identifier is the primary key. [ADR-012](docs/adrs/012-use-domain-identifier-as-pk.md)
+- Error ownership and mapping via filters. [ADR-013](docs/adrs/013-error-ownership.md), [ADR-014](docs/adrs/014-http-error-using-filters.md)
+- Tests cover units and adapters with Supertest. [ADR-015](docs/adrs/015-testing-strategy.md), [ADR-016](docs/adrs/016-use-supertest-for-controller-testing.md)
+
+Full ADR index: [docs/adrs/index.md](docs/adrs/index.md)
+
+## Folder Structure
+
+- `src/domain`: entities and business rules (framework-agnostic).
+- `src/application`: use cases and application-level policies.
+- `src/infrastructure`: adapters (REST/GraphQL, persistence, presenters).
+- `src/main`: composition root and feature wiring.
+- `prisma`, `typeorm`: ORM schemas and migrations.
+- `test`: integration/e2e tests and support utilities.
+- `docs/adrs`: architecture decisions.
+
+## Repository Implementation (Prisma or TypeORM)
+
+The active repository is selected by environment variable.
 
 ```bash
-$ npm run start:dev
-or
-$ yarn start:dev
+export POKEMON_REPOSITORY=typeorm
 ```
 
-## Test
+Accepted values: `prisma` (default) or `typeorm`.
 
-```bash
-$ npm run test
-or
-$ yarn test
-```
+## Notes for Reviewers
+
+- The project focuses on architectural clarity and testability over framework convenience.
+- Comments are intentionally minimal and reference ADRs when decisions are non-obvious.
+- Both REST and GraphQL share the same use cases.
