@@ -117,6 +117,36 @@ export class PokemonRepositoryPrisma implements PokemonRepository {
         return this.mapToDomain(updatedPrismaPokemon);
     }
 
+    async upsert(pokemon: Pokemon): Promise<Pokemon> {
+        const upsertedPrismaPokemon = await this.prisma.pokemon.upsert({
+            where: { id: pokemon.id },
+            update: {
+                name: pokemon.name,
+                types: {
+                    set: [], // Disconnect all
+                    connectOrCreate: pokemon.types.map((type) => ({
+                        where: { name: type.name },
+                        create: { name: type.name },
+                    })),
+                },
+            },
+            create: {
+                id: pokemon.id,
+                name: pokemon.name,
+                created_at: pokemon.createdAt,
+                types: {
+                    connectOrCreate: pokemon.types.map((type) => ({
+                        where: { name: type.name },
+                        create: { name: type.name },
+                    })),
+                },
+            },
+            include: { types: true },
+        });
+
+        return this.mapToDomain(upsertedPrismaPokemon);
+    }
+
     async delete(id: number): Promise<void> {
         await this.prisma.pokemon.delete({
             where: { id },

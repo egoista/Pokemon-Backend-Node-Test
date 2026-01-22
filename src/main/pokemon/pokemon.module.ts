@@ -9,6 +9,8 @@ import { GetPokemonByIdUseCase } from '../../application/pokemon/get-pokemon-by-
 import { ListPokemonsUseCase } from '../../application/pokemon/list-pokemons.use-case';
 import { UpdatePokemonUseCase } from '../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../application/pokemon/delete-pokemon.use-case';
+import { ImportPokemonByIdUseCase } from '../../application/pokemon/import-pokemon-by-id.use-case';
+import { PokeApiClient } from '../../infrastructure/pokemon/poke-api.client';
 import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructure/pokemon/graphql/pokemon.resolver';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
@@ -65,6 +67,14 @@ const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
                 return new DeletePokemonUseCase(repo);
             },
             inject: [POKEMON_REPOSITORY],
+        },
+        PokeApiClient,
+        {
+            provide: ImportPokemonByIdUseCase,
+            useFactory: (repo: PokemonRepository, client: PokeApiClient) => {
+                return new ImportPokemonByIdUseCase(repo, client);
+            },
+            inject: [POKEMON_REPOSITORY, PokeApiClient],
         },
     ],
 })

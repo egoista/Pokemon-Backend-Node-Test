@@ -72,4 +72,5 @@ type Mutation {
   createPokemon(input: CreatePokemonInput!): CreatePokemonResult!
   updatePokemon(input: UpdatePokemonInput!): Pokemon!
   deletePokemon(id: Int!): Boolean!
+  importPokemon(id: Int!): Pokemon!
 }

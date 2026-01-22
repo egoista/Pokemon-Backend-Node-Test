@@ -25,5 +25,6 @@ export interface PokemonRepository {
     findWithFilters(filters: PokemonListFilters): Promise<PokemonListResult>;
     save(pokemon: Pokemon): Promise<Pokemon>;
     update(pokemon: Pokemon): Promise<Pokemon>;
+    upsert(pokemon: Pokemon): Promise<Pokemon>;
     delete(id: number): Promise<void>;
 }

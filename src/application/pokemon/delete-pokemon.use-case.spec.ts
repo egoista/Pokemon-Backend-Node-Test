@@ -16,6 +16,7 @@ describe('DeletePokemonUseCase', () => {
             findWithFilters: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
+            upsert: jest.fn(),
             delete: jest.fn(),
         };
         useCase = new DeletePokemonUseCase(pokemonRepository);
