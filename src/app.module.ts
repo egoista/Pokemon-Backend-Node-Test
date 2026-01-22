@@ -7,9 +7,11 @@ import { PrismaModule } from "./infrastructure/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PokemonModule } from "./main/pokemon/pokemon.module";
 import { ThrottlerModule } from "@nestjs/throttler";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
-import { GqlThrottlerGuard } from "./infrastructure/common/guards/gql-throttler.guard";
 import { ThrottlerExceptionFilter } from "./infrastructure/common/filters/throttler-exception.filter";
+import { CacheModule } from "./infrastructure/cache/cache.module";
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { GqlThrottlerGuard } from "./infrastructure/common/guards/gql-throttler.guard";
+import { HttpCacheInterceptor } from "./infrastructure/common/interceptors/http-cache.interceptor";
 
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? "prisma";
 const useTypeOrm = pokemonRepositoryImpl === "typeorm";
@@ -21,7 +23,7 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
 
 @Module({
   imports: [
-
+    CacheModule,
     ThrottlerModule.forRootAsync({
       useFactory: () => [
         {
@@ -40,6 +42,7 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
         : {
           path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
         },
+      context: ({ req, res }) => ({ req, res }),
     }),
     PokemonModule,
     ...(useTypeOrm
@@ -63,6 +66,10 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
     {
       provide: APP_FILTER,
       useClass: ThrottlerExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpCacheInterceptor,
     },
   ],
 })
