@@ -1,7 +1,13 @@
+type Type {
+  id: Int!
+  name: String!
+  created_at: String!
+}
+
 type Pokemon {
   id: Int!
   name: String!
-  type: String!
+  types: [Type!]!
   created_at: String!
 }
 
@@ -16,13 +22,13 @@ type PokemonNotFoundError {
 input CreatePokemonInput {
   id: Int!
   name: String!
-  type: String!
+  types: [String!]!
 }
 
 input UpdatePokemonInput {
   id: Int!
   name: String
-  type: String
+  types: [String!]
 }
 
 input PokemonFilterInput {

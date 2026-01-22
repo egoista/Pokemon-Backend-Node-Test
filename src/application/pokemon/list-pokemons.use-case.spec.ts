@@ -1,5 +1,6 @@
 import { ListPokemonsUseCase } from './list-pokemons.use-case';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
+import { Type } from '../../domain/type.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { ValidationError } from '../shared/errors/application.errors';
 
@@ -21,8 +22,8 @@ describe('ListPokemonsUseCase', () => {
     });
 
     it('should list pokemons with pagination metadata', async () => {
-        const pikachu = new Pokemon(1, 'Pikachu', 'Electric', new Date());
-        const bulbasaur = new Pokemon(2, 'Bulbasaur', 'Grass', new Date());
+        const pikachu = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
+        const bulbasaur = new Pokemon(2, 'Bulbasaur', [new Type(2, 'Grass', new Date())], new Date());
 
         (pokemonRepository.findWithFilters as jest.Mock).mockResolvedValue({
             data: [pikachu, bulbasaur],

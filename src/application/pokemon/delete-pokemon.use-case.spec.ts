@@ -1,6 +1,7 @@
 import { DeletePokemonUseCase } from './delete-pokemon.use-case';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
+import { Type } from '../../domain/type.entity';
 import { PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
 
 describe('DeletePokemonUseCase', () => {
@@ -23,7 +24,7 @@ describe('DeletePokemonUseCase', () => {
     it('should delete pokemon when it exists', async () => {
         // Arrange
         const pokemonId = 1;
-        const existingPokemon = new Pokemon(pokemonId, 'Pikachu', 'Electric', new Date());
+        const existingPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.delete as jest.Mock).mockResolvedValue(undefined);
 

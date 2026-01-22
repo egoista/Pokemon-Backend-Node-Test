@@ -3,26 +3,27 @@ import {
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
 } from './pokemon.errors';
+import { Type } from '../type.entity';
 
 export class Pokemon {
     private readonly _id: number;
     private _name: string;
-    private _type: string;
+    private _types: Type[];
     private readonly _createdAt: Date;
 
     constructor(
         id: number,
         name: string,
-        type: string,
+        types: Type[],
         createdAt?: Date,
     ) {
         this.validateId(id);
         this.validateName(name);
-        this.validateType(type);
+        this.validateTypes(types);
 
         this._id = id;
         this._name = name;
-        this._type = type;
+        this._types = types;
         this._createdAt = createdAt ?? new Date();
     }
 
@@ -34,8 +35,8 @@ export class Pokemon {
         return this._name;
     }
 
-    get type(): string {
-        return this._type;
+    get types(): Type[] {
+        return this._types;
     }
 
     get createdAt(): Date {
@@ -47,9 +48,9 @@ export class Pokemon {
         this._name = value;
     }
 
-    set type(value: string) {
-        this.validateType(value);
-        this._type = value;
+    set types(value: Type[]) {
+        this.validateTypes(value);
+        this._types = value;
     }
 
     private validateId(id: number): void {
@@ -64,8 +65,8 @@ export class Pokemon {
         }
     }
 
-    private validateType(type: string): void {
-        if (!type || type.trim().length === 0) {
+    private validateTypes(types: Type[]): void {
+        if (!types || types.length === 0) {
             throw new InvalidPokemonTypeError();
         }
     }

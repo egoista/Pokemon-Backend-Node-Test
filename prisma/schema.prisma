@@ -9,10 +9,19 @@ datasource db {
 
 model Pokemon {
   name String
-  type String
 
   id         Int      @id
   created_at DateTime @default(now())
+  types      Type[]
 
   @@map("pokemons")
+}
+
+model Type {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  created_at DateTime @default(now())
+  pokemons   Pokemon[]
+
+  @@map("types")
 }

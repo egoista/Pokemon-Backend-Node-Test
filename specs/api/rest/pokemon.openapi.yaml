@@ -219,14 +219,12 @@ paths:
 
 components:
   schemas:
-    Pokemon:
+    Type:
       type: object
       properties:
         id:
           type: integer
         name:
-          type: string
-        type:
           type: string
         created_at:
           type: string
@@ -234,7 +232,26 @@ components:
       required:
         - id
         - name
-        - type
+        - created_at
+
+    Pokemon:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        types:
+          type: array
+          items:
+            $ref: '#/components/schemas/Type'
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - types
         - created_at
 
     CreatePokemonInput:
@@ -242,19 +259,23 @@ components:
       properties:
         name:
           type: string
-        type:
-          type: string
+        types:
+          type: array
+          items:
+            type: string
       required:
         - name
-        - type
+        - types
 
     UpdatePokemonInput:
       type: object
       properties:
         name:
           type: string
-        type:
-          type: string
+        types:
+          type: array
+          items:
+            type: string
       additionalProperties: false
 
     PokemonListResponse:

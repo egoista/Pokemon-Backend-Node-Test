@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '../../../src/app.module';
 import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/repositories/pokemon.repository.prisma';
 import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
+import { Type } from '../../../src/domain/type.entity';
 import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
 
 import { createTestApp } from '../../support/create-test-app';
@@ -37,15 +38,17 @@ describe('PokemonResolver (e2e)', () => {
     // Arrange
     const id = 101;
     const name = "Mewtwo";
-    const type = "Psychic";
+    const types = ["Psychic"];
 
     const mutation = `
       mutation {
-        createPokemon(input: { id: ${id}, name: "${name}", type: "${type}" }) {
+        createPokemon(input: { id: ${id}, name: "${name}", types: ["${types[0]}"] }) {
           ... on Pokemon {
             id
             name
-            type
+            types {
+                name
+            }
           }
           ... on PokemonAlreadyExistsError {
             message
@@ -66,7 +69,8 @@ describe('PokemonResolver (e2e)', () => {
         }
         expect(data.id).toBe(id);
         expect(data.name).toBe(name);
-        expect(data.type).toBe(type);
+        expect(data.types).toHaveLength(1);
+        expect(data.types[0].name).toBe(types[0]);
       });
 
     // Verify persistence in Fake DB
@@ -79,14 +83,14 @@ describe('PokemonResolver (e2e)', () => {
     // Arrange
     const id = 102;
     const name = "Pikachu";
-    const type = "Electric";
+    const types = ["Electric"];
 
     // Seed fake DB
-    await fakeRepository.save(new Pokemon(999, name, "ExistingType"));
+    await fakeRepository.save(new Pokemon(999, name, [new Type(1, "Electric", new Date())]));
 
     const mutation = `
       mutation {
-        createPokemon(input: { id: ${id}, name: "${name}", type: "${type}" }) {
+        createPokemon(input: { id: ${id}, name: "${name}", types: ["${types[0]}"] }) {
           ... on Pokemon {
             id
           }
@@ -111,9 +115,9 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should list pokemons with filters and pagination', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
 
     const query = `
       query {
@@ -125,7 +129,9 @@ describe('PokemonResolver (e2e)', () => {
           data {
             id
             name
-            type
+            types {
+                name
+            }
           }
           pagination {
             page
@@ -155,9 +161,9 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should support sorting by created_at desc', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
 
     const query = `
       query {
@@ -179,6 +185,117 @@ describe('PokemonResolver (e2e)', () => {
       .expect((res) => {
         const data = res.body.data.pokemons;
         expect(data.data[0].id).toBe(3);
+      });
+  });
+
+  it('should create a pokemon with multiple types', async () => {
+    // Arrange
+    const id = 6;
+    const name = "Charizard";
+    const types = ["Fire", "Flying"];
+
+    const mutation = `
+      mutation {
+        createPokemon(input: { id: ${id}, name: "${name}", types: ["${types[0]}", "${types[1]}"] }) {
+          ... on Pokemon {
+            id
+            name
+            types {
+                name
+            }
+          }
+          ... on PokemonAlreadyExistsError {
+            message
+          }
+        }
+      }
+    `;
+
+    // Act & Assert
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: mutation })
+      .expect(200)
+      .expect((res) => {
+        const data = res.body.data.createPokemon;
+        expect(data.id).toBe(id);
+        expect(data.name).toBe(name);
+        expect(data.types).toHaveLength(2);
+        expect(data.types[0].name).toBe('Fire');
+        expect(data.types[1].name).toBe('Flying');
+      });
+  });
+
+  it('should update pokemon types successfully', async () => {
+    // Arrange
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type(1, 'Electric', new Date('2023-01-01'))],
+      new Date('2023-01-01'),
+    );
+    await fakeRepository.save(existingPokemon);
+
+    const mutation = `
+      mutation {
+        updatePokemon(input: { id: 1, types: ["Electric", "Steel"] }) {
+          id
+          name
+          types {
+            name
+          }
+        }
+      }
+    `;
+
+    // Act & Assert
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: mutation })
+      .expect(200)
+      .expect((res) => {
+        const data = res.body.data.updatePokemon;
+        expect(data.id).toBe(1);
+        expect(data.name).toBe('Pikachu');
+        expect(data.types).toHaveLength(2);
+        expect(data.types[0].name).toBe('Electric');
+        expect(data.types[1].name).toBe('Steel');
+      });
+  });
+
+  it('should replace all types when updating', async () => {
+    // Arrange
+    const existingPokemon = new Pokemon(
+      6,
+      'Charizard',
+      [new Type(1, 'Fire', new Date('2023-01-01')), new Type(2, 'Flying', new Date('2023-01-01'))],
+      new Date('2023-01-01'),
+    );
+    await fakeRepository.save(existingPokemon);
+
+    const mutation = `
+      mutation {
+        updatePokemon(input: { id: 6, types: ["Dragon"] }) {
+          id
+          name
+          types {
+            name
+          }
+        }
+      }
+    `;
+
+    // Act & Assert
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: mutation })
+      .expect(200)
+      .expect((res) => {
+        const data = res.body.data.updatePokemon;
+        expect(data.id).toBe(6);
+        expect(data.name).toBe('Charizard');
+        expect(data.types).toHaveLength(1);
+        expect(data.types[0].name).toBe('Dragon');
       });
   });
 });

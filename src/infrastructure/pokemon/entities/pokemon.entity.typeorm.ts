@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, CreateDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import { TypeEntity } from './type.entity.typeorm';
 
 @Entity('pokemons')
 export class PokemonEntity {
@@ -8,8 +9,13 @@ export class PokemonEntity {
     @Column()
     name: string;
 
-    @Column()
-    type: string;
+    @ManyToMany(() => TypeEntity, (type) => type.pokemons, { cascade: ['insert', 'update'] })
+    @JoinTable({
+        name: '_PokemonToType',
+        joinColumn: { name: 'A', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'B', referencedColumnName: 'id' }
+    })
+    types: TypeEntity[];
 
     @CreateDateColumn({ name: 'created_at' })
     created_at: Date;
