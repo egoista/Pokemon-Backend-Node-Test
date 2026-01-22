@@ -16,8 +16,8 @@ export type SortSpec<TField extends string> = {
 export type ListQuerySpec<TField extends string> = PaginationSpec & SortSpec<TField>;
 
 type ListQueryInput = {
-    page?: number | string;
-    limit?: number | string;
+    page?: number;
+    limit?: number;
     sortBy?: string;
     sortOrder?: string;
 };
@@ -59,10 +59,9 @@ export function normalizeListQuery<TField extends string>(input: ListQueryInput,
     };
 }
 
-function parsePositiveInt(value: number | string, field: string): number {
-    const parsed = typeof value === 'string' ? Number(value) : value;
-    if (!Number.isInteger(parsed) || parsed < 1) {
+function parsePositiveInt(value: number, field: string): number {
+    if (!Number.isInteger(value) || value < 1) {
         throw new ValidationError(`${field} must be a positive integer.`);
     }
-    return parsed;
+    return value;
 }
