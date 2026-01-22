@@ -18,7 +18,14 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:graphql": "jest --config ./test/jest-e2e.json test/e2e/graphql",
+    "db:prisma:init": "npx prisma migrate dev --name init",
+    "db:prisma:migrate": "npx prisma migrate dev",
+    "db:prisma:reset": "npx prisma migrate reset --force",
+    "db:typeorm:migrate": "npx typeorm migration:run -d typeorm/data-source.ts",
+    "db:typeorm:revert": "npx typeorm migration:revert -d typeorm/data-source.ts",
+    "db:setup": "npm run db:prisma:migrate"
   },
   "dependencies": {
     "@apollo/server": "^4.7.5",

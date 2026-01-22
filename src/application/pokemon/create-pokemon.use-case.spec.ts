@@ -14,8 +14,12 @@ describe('CreatePokemonUseCase', () => {
 
     beforeEach(() => {
         pokemonRepository = {
+            findById: jest.fn(),
             findByName: jest.fn(),
+            findAll: jest.fn(),
             save: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
         };
         useCase = new CreatePokemonUseCase(pokemonRepository);
     });
