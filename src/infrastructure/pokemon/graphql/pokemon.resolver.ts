@@ -7,6 +7,21 @@ import { DeletePokemonUseCase } from '../../../application/pokemon/delete-pokemo
 import { CreatePokemonInput, UpdatePokemonInput } from '../../graphql/generated/graphql.schema';
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../../domain/pokemon/pokemon.errors';
 
+interface PokemonFilterInput {
+    type?: string;
+    name?: string;
+}
+
+interface PaginationInput {
+    page?: number;
+    limit?: number;
+}
+
+interface SortInput {
+    sortBy?: string;
+    sortOrder?: string;
+}
+
 @Resolver('Pokemon')
 export class PokemonResolver {
     constructor(
@@ -17,8 +32,19 @@ export class PokemonResolver {
     ) { }
 
     @Query('pokemons')
-    async listPokemons() {
-        return this.listPokemonsUseCase.execute();
+    async listPokemons(
+        @Args('filter') filter?: PokemonFilterInput,
+        @Args('pagination') pagination?: PaginationInput,
+        @Args('sort') sort?: SortInput,
+    ) {
+        return this.listPokemonsUseCase.execute({
+            type: filter?.type,
+            name: filter?.name,
+            page: pagination?.page,
+            limit: pagination?.limit,
+            sortBy: sort?.sortBy,
+            sortOrder: sort?.sortOrder,
+        });
     }
 
     @Mutation('createPokemon')
@@ -88,4 +114,3 @@ export class PokemonFieldResolver {
         return pokemon.createdAt;
     }
 }
-

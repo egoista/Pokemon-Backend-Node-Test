@@ -1,4 +1,4 @@
-import { PokemonRepository } from '../../../src/domain/pokemon/pokemon.repository.interface';
+import { PokemonListFilters, PokemonListResult, PokemonRepository } from '../../../src/domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
 
 export class InMemoryPokemonRepository implements PokemonRepository {
@@ -21,6 +21,29 @@ export class InMemoryPokemonRepository implements PokemonRepository {
 
     async findAll(): Promise<Pokemon[]> {
         return [...this.pokemons];
+    }
+
+    async findWithFilters(filters: PokemonListFilters): Promise<PokemonListResult> {
+        let filtered = [...this.pokemons];
+
+        if (filters.type) {
+            filtered = filtered.filter((pokemon) => pokemon.type === filters.type);
+        }
+
+        if (filters.name) {
+            const name = filters.name.toLowerCase();
+            filtered = filtered.filter((pokemon) => pokemon.name.toLowerCase().includes(name));
+        }
+
+        filtered.sort((a, b) => {
+            const comparison = a.name.localeCompare(b.name);
+            return filters.sortOrder === 'asc' ? comparison : -comparison;
+        });
+
+        const totalCount = filtered.length;
+        const data = filtered.slice(filters.offset, filters.offset + filters.limit);
+
+        return { data, totalCount };
     }
 
     async update(pokemon: Pokemon): Promise<Pokemon> {

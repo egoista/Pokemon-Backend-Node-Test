@@ -11,6 +11,7 @@ import {
     InvalidPokemonIdError,
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
+    ValidationError,
 } from '../../../domain/pokemon/pokemon.errors';
 
 @Catch(
@@ -19,6 +20,7 @@ import {
     InvalidPokemonIdError,
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
+    ValidationError,
 )
 export class PokemonHttpExceptionFilter implements ExceptionFilter {
     catch(error: unknown, host: ArgumentsHost) {
@@ -37,7 +39,8 @@ export class PokemonHttpExceptionFilter implements ExceptionFilter {
         } else if (
             error instanceof InvalidPokemonIdError ||
             error instanceof InvalidPokemonNameError ||
-            error instanceof InvalidPokemonTypeError
+            error instanceof InvalidPokemonTypeError ||
+            error instanceof ValidationError
         ) {
             status = HttpStatus.BAD_REQUEST;
             message = error.message;

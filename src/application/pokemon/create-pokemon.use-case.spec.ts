@@ -17,6 +17,7 @@ describe('CreatePokemonUseCase', () => {
             findById: jest.fn(),
             findByName: jest.fn(),
             findAll: jest.fn(),
+            findWithFilters: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
