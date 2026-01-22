@@ -16,16 +16,13 @@ export class CreatePokemonUseCase {
     async execute(input: CreatePokemonInput): Promise<Pokemon> {
         const { id, name, type } = input;
 
-        // 1. Check uniqueness (business rule)
         const existingPokemon = await this.pokemonRepository.findByName(name);
         if (existingPokemon) {
             throw new PokemonAlreadyExistsError(name);
         }
 
-        // 2. Create entity (entity validates invariants)
         const pokemon = new Pokemon(id, name, type);
 
-        // 3. Persist
         return this.pokemonRepository.save(pokemon);
     }
 }

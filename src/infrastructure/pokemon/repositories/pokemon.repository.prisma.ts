@@ -3,6 +3,8 @@ import { PokemonListFilters, PokemonListResult, PokemonRepository } from '../../
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 
+// ARCH: Infrastructure adapter mapping persistence <-> domain entity.
+// ADR-004: Multiple ORMs via repository abstraction. ADR-012: Domain identifier as PK.
 @Injectable()
 export class PokemonRepositoryPrisma implements PokemonRepository {
     constructor(private readonly prisma: PrismaService) { }

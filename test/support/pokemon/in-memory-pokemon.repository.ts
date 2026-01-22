@@ -36,7 +36,22 @@ export class InMemoryPokemonRepository implements PokemonRepository {
         }
 
         filtered.sort((a, b) => {
-            const comparison = a.name.localeCompare(b.name);
+            let comparison = 0;
+            switch (filters.sortBy) {
+                case 'id':
+                    comparison = a.id - b.id;
+                    break;
+                case 'type':
+                    comparison = a.type.localeCompare(b.type);
+                    break;
+                case 'created_at':
+                    comparison = a.createdAt.getTime() - b.createdAt.getTime();
+                    break;
+                case 'name':
+                default:
+                    comparison = a.name.localeCompare(b.name);
+                    break;
+            }
             return filters.sortOrder === 'asc' ? comparison : -comparison;
         });
 

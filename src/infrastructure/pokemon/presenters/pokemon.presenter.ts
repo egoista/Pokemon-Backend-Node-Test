@@ -1,5 +1,7 @@
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 
+// ARCH: Presentation mapper for transport responses.
+// ADR-002: Clean Architecture.
 export class PokemonPresenter {
     id: number;
     name: string;

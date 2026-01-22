@@ -6,6 +6,8 @@ import { UpdatePokemonUseCase } from '../../../application/pokemon/update-pokemo
 import { DeletePokemonUseCase } from '../../../application/pokemon/delete-pokemon.use-case';
 import { CreatePokemonInput, UpdatePokemonInput } from '../../graphql/generated/graphql.schema';
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../../domain/pokemon/pokemon.errors';
+import { PokemonPresenter } from '../presenters/pokemon.presenter';
+import { PokemonListPresenter } from '../presenters/pokemon-list.presenter';
 
 interface PokemonFilterInput {
     type?: string;
@@ -22,6 +24,8 @@ interface SortInput {
     sortOrder?: string;
 }
 
+// ARCH: GraphQL adapter only; use cases remain transport-agnostic.
+// ADR-002: Clean Architecture. ADR-003: REST + GraphQL adapters. ADR-009: No GraphQL versioning.
 @Resolver('Pokemon')
 export class PokemonResolver {
     constructor(
@@ -37,7 +41,7 @@ export class PokemonResolver {
         @Args('pagination') pagination?: PaginationInput,
         @Args('sort') sort?: SortInput,
     ) {
-        return this.listPokemonsUseCase.execute({
+        const result = await this.listPokemonsUseCase.execute({
             type: filter?.type,
             name: filter?.name,
             page: pagination?.page,
@@ -45,13 +49,14 @@ export class PokemonResolver {
             sortBy: sort?.sortBy,
             sortOrder: sort?.sortOrder,
         });
+        return new PokemonListPresenter(result);
     }
 
     @Mutation('createPokemon')
     async create(@Args('input') input: CreatePokemonInput) {
         try {
             const pokemon = await this.createPokemonUseCase.execute(input);
-            return pokemon;
+            return new PokemonPresenter(pokemon);
         } catch (error) {
             if (error instanceof PokemonAlreadyExistsError) {
                 return {
@@ -67,7 +72,7 @@ export class PokemonResolver {
     async update(@Args('input') input: UpdatePokemonInput) {
         try {
             const pokemon = await this.updatePokemonUseCase.execute(input);
-            return pokemon;
+            return new PokemonPresenter(pokemon);
         } catch (error) {
             if (error instanceof PokemonNotFoundError) {
                 throw error;
@@ -93,6 +98,8 @@ export class PokemonResolver {
     }
 }
 
+// ARCH: Map GraphQL union types without leaking domain errors.
+// ADR-003: REST + GraphQL adapters. ADR-013: Error ownership.
 @Resolver('CreatePokemonResult')
 export class CreatePokemonResultResolver {
     @ResolveField()
@@ -104,13 +111,5 @@ export class CreatePokemonResultResolver {
             return 'PokemonAlreadyExistsError';
         }
         return null;
-    }
-}
-
-@Resolver('Pokemon')
-export class PokemonFieldResolver {
-    @ResolveField('created_at')
-    createdAt(pokemon) {
-        return pokemon.createdAt;
     }
 }

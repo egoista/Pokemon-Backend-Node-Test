@@ -11,9 +11,11 @@ import {
     InvalidPokemonIdError,
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
-    ValidationError,
 } from '../../../domain/pokemon/pokemon.errors';
+import { ValidationError } from '../../../application/shared/errors/application.errors';
 
+// ARCH: Map domain errors to HTTP responses at the boundary.
+// ADR-013: Error ownership. ADR-014: HTTP error mapping via filters.
 @Catch(
     PokemonAlreadyExistsError,
     PokemonNotFoundError,

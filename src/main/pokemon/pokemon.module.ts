@@ -1,59 +1,71 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { PokemonController } from '../../infrastructure/pokemon/controllers/pokemon.controller';
 import { PokemonRepositoryPrisma } from '../../infrastructure/pokemon/repositories/pokemon.repository.prisma';
+import { PokemonRepositoryTypeORM } from '../../infrastructure/pokemon/repositories/pokemon.repository.typeorm';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { CreatePokemonUseCase } from '../../application/pokemon/create-pokemon.use-case';
 import { GetPokemonByIdUseCase } from '../../application/pokemon/get-pokemon-by-id.use-case';
 import { ListPokemonsUseCase } from '../../application/pokemon/list-pokemons.use-case';
 import { UpdatePokemonUseCase } from '../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../application/pokemon/delete-pokemon.use-case';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { PokemonResolver, CreatePokemonResultResolver, PokemonFieldResolver } from '../../infrastructure/pokemon/graphql/pokemon.resolver';
+import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructure/pokemon/graphql/pokemon.resolver';
+import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
+import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
 
+const POKEMON_REPOSITORY = 'POKEMON_REPOSITORY';
+const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? 'prisma';
+const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
+
+// ARCH: Composition root for Pokemon feature; wire concrete adapters here.
+// ADR-006: Manual composition root. ADR-004: Multiple ORMs via repository abstraction.
 @Module({
-    imports: [PrismaModule],
+    imports: useTypeOrm
+        ? [TypeOrmModule.forFeature([PokemonEntity])]
+        : [PrismaModule],
     controllers: [PokemonController],
     providers: [
-        PokemonRepositoryPrisma,
+        ...(useTypeOrm ? [PokemonRepositoryTypeORM] : [PokemonRepositoryPrisma]),
         PokemonResolver,
         CreatePokemonResultResolver,
-        PokemonFieldResolver,
+        useTypeOrm
+            ? { provide: POKEMON_REPOSITORY, useExisting: PokemonRepositoryTypeORM }
+            : { provide: POKEMON_REPOSITORY, useExisting: PokemonRepositoryPrisma },
         {
             provide: CreatePokemonUseCase,
-            useFactory: (repo: PokemonRepositoryPrisma) => {
+            useFactory: (repo: PokemonRepository) => {
                 return new CreatePokemonUseCase(repo);
             },
-            inject: [PokemonRepositoryPrisma],
+            inject: [POKEMON_REPOSITORY],
         },
         {
             provide: GetPokemonByIdUseCase,
-            useFactory: (repo: PokemonRepositoryPrisma) => {
+            useFactory: (repo: PokemonRepository) => {
                 return new GetPokemonByIdUseCase(repo);
             },
-            inject: [PokemonRepositoryPrisma],
+            inject: [POKEMON_REPOSITORY],
         },
         {
             provide: ListPokemonsUseCase,
-            useFactory: (repo: PokemonRepositoryPrisma) => {
+            useFactory: (repo: PokemonRepository) => {
                 return new ListPokemonsUseCase(repo);
             },
-            inject: [PokemonRepositoryPrisma],
+            inject: [POKEMON_REPOSITORY],
         },
         {
             provide: UpdatePokemonUseCase,
-            useFactory: (repo: PokemonRepositoryPrisma) => {
+            useFactory: (repo: PokemonRepository) => {
                 return new UpdatePokemonUseCase(repo);
             },
-            inject: [PokemonRepositoryPrisma],
+            inject: [POKEMON_REPOSITORY],
         },
         {
             provide: DeletePokemonUseCase,
-            useFactory: (repo: PokemonRepositoryPrisma) => {
+            useFactory: (repo: PokemonRepository) => {
                 return new DeletePokemonUseCase(repo);
             },
-            inject: [PokemonRepositoryPrisma],
+            inject: [POKEMON_REPOSITORY],
         },
     ],
 })
 export class PokemonModule { }
-

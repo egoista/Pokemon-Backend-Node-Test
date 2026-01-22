@@ -8,6 +8,12 @@ import { PrismaModule } from "./infrastructure/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PokemonModule } from "./main/pokemon/pokemon.module";
 
+const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? "prisma";
+const useTypeOrm = pokemonRepositoryImpl === "typeorm";
+
+// ARCH: Application composition root; infrastructure is selected at runtime.
+// ADR-006: Manual composition root. ADR-004: Multiple ORMs via repository abstraction.
+// NOTE: Use a single ORM per process to avoid double connections and duplicated schema sync.
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -20,15 +26,18 @@ import { PokemonModule } from "./main/pokemon/pokemon.module";
       },
     }),
     HelloModule,
-    PrismaModule,
     PokemonModule,
-    TypeOrmModule.forRoot({
-      type: "sqlite",
-      database: "./database/database_orm.sqlite",
-      autoLoadEntities: true,
-      synchronize: true,
-      migrations: ["../typeorm/migrations/*.ts"],
-    }),
+    ...(useTypeOrm
+      ? [
+          TypeOrmModule.forRoot({
+            type: "sqlite",
+            database: "./database/database_orm.sqlite",
+            autoLoadEntities: true,
+            synchronize: true,
+            migrations: ["../typeorm/migrations/*.ts"],
+          }),
+        ]
+      : [PrismaModule]),
   ],
   controllers: [],
   providers: [],

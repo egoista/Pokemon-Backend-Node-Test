@@ -148,4 +148,32 @@ describe('PokemonResolver (e2e)', () => {
         });
       });
   });
+
+  it('should support sorting by created_at desc', async () => {
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', 'Electric', new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', 'Electric', new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', 'Grass', new Date('2023-01-03')));
+
+    const query = `
+      query {
+        pokemons(
+          sort: { sortBy: "created_at", sortOrder: "desc" }
+        ) {
+          data {
+            id
+            name
+          }
+        }
+      }
+    `;
+
+    await request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query })
+      .expect(200)
+      .expect((res) => {
+        const data = res.body.data.pokemons;
+        expect(data.data[0].id).toBe(3);
+      });
+  });
 });

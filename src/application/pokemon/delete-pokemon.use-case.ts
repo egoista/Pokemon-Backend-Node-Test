@@ -7,13 +7,11 @@ export class DeletePokemonUseCase {
     ) { }
 
     async execute(id: number): Promise<void> {
-        // 1. Find Pokemon to ensure it exists
         const pokemon = await this.pokemonRepository.findById(id);
         if (!pokemon) {
             throw new PokemonNotFoundError(id);
         }
 
-        // 2. Delete Pokemon
         await this.pokemonRepository.delete(id);
     }
 }

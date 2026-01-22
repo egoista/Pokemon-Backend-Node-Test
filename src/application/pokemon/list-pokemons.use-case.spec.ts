@@ -1,7 +1,7 @@
 import { ListPokemonsUseCase } from './list-pokemons.use-case';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
-import { ValidationError } from '../../domain/pokemon/pokemon.errors';
+import { ValidationError } from '../shared/errors/application.errors';
 
 describe('ListPokemonsUseCase', () => {
     let useCase: ListPokemonsUseCase;
@@ -54,8 +54,19 @@ describe('ListPokemonsUseCase', () => {
         await expect(useCase.execute({ limit: 101 })).rejects.toThrow(ValidationError);
     });
 
+    it('should allow supported sortBy values', async () => {
+        (pokemonRepository.findWithFilters as jest.Mock).mockResolvedValue({
+            data: [],
+            totalCount: 0,
+        });
+
+        await useCase.execute({ sortBy: 'id' });
+        await useCase.execute({ sortBy: 'type' });
+        await useCase.execute({ sortBy: 'created_at' });
+    });
+
     it('should validate sortBy and sortOrder', async () => {
-        await expect(useCase.execute({ sortBy: 'id' })).rejects.toThrow(ValidationError);
+        await expect(useCase.execute({ sortBy: 'invalid' })).rejects.toThrow(ValidationError);
         await expect(useCase.execute({ sortOrder: 'invalid' })).rejects.toThrow(ValidationError);
     });
 });
