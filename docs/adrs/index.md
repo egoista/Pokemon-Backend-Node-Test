@@ -13,3 +13,4 @@
 | [009](./009-no-versioning-strategy-for-graphql-api.md) | No Versioning Strategy for GraphQL API | Accepted |
 | [010](./010-commit-message-convention.md) | Commit Message Convention | Accepted |
 | [011](./011-feature-branch-strategy.md) | Feature Branch Strategy | Accepted |
+| [012](./012-use-domain-identifier-as-pk.md) | Domain Identifier as PK | Accepted |
