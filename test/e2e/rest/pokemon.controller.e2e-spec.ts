@@ -34,7 +34,7 @@ describe('PokemonController (e2e)', () => {
         await app.close();
     });
 
-    it('/pokemons (POST) - success', async () => {
+    it('/api/v1/pokemons (POST) - success', async () => {
         const dto: CreatePokemonDto = {
             id: 1,
             name: 'Pikachu',
@@ -42,7 +42,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .post('/pokemons')
+            .post('/api/v1/pokemons')
             .send(dto)
             .expect(201)
             .expect((res) => {
@@ -53,7 +53,7 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons (POST) - 409 Conflict if pokemon already exists', async () => {
+    it('/api/v1/pokemons (POST) - 409 Conflict if pokemon already exists', async () => {
         const existingPokemon = new Pokemon(
             1,
             'Pikachu',
@@ -70,7 +70,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .post('/pokemons')
+            .post('/api/v1/pokemons')
             .send(dto)
             .expect(409)
             .expect((res) => {
@@ -79,7 +79,7 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons (POST) - 400 Bad Request if validation logic fails', async () => {
+    it('/api/v1/pokemons (POST) - 400 Bad Request if validation logic fails', async () => {
         const dto: CreatePokemonDto = {
             id: -1,
             name: 'Pikachu',
@@ -87,7 +87,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .post('/pokemons')
+            .post('/api/v1/pokemons')
             .send(dto)
             .expect(400)
             .expect((res) => {
@@ -95,13 +95,13 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons (GET) - supports filters and pagination', async () => {
+    it('/api/v1/pokemons (GET) - supports filters and pagination', async () => {
         await repo.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
         await repo.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
         await repo.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
 
         return request(app.getHttpServer())
-            .get('/pokemons')
+            .get('/api/v1/pokemons')
             .query({ type: 'Electric', name: 'chu', page: 1, limit: 1, sortBy: 'name', sortOrder: 'asc' })
             .expect(200)
             .expect((res) => {
@@ -116,13 +116,13 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons (GET) - supports sort by id desc', async () => {
+    it('/api/v1/pokemons (GET) - supports sort by id desc', async () => {
         await repo.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
         await repo.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
         await repo.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
 
         return request(app.getHttpServer())
-            .get('/pokemons')
+            .get('/api/v1/pokemons')
             .query({ sortBy: 'id', sortOrder: 'desc' })
             .expect(200)
             .expect((res) => {
@@ -131,7 +131,7 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons (POST) - should create pokemon with multiple types', async () => {
+    it('/api/v1/pokemons (POST) - should create pokemon with multiple types', async () => {
         const dto: CreatePokemonDto = {
             id: 6,
             name: 'Charizard',
@@ -139,7 +139,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .post('/pokemons')
+            .post('/api/v1/pokemons')
             .send(dto)
             .expect(201)
             .expect((res) => {
@@ -151,7 +151,7 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons/:id (PATCH) - should update pokemon types successfully', async () => {
+    it('/api/v1/pokemons/:id (PATCH) - should update pokemon types successfully', async () => {
         const existingPokemon = new Pokemon(
             1,
             'Pikachu',
@@ -165,7 +165,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .patch('/pokemons/1')
+            .patch('/api/v1/pokemons/1')
             .send(updateDto)
             .expect(200)
             .expect((res) => {
@@ -177,7 +177,7 @@ describe('PokemonController (e2e)', () => {
             });
     });
 
-    it('/pokemons/:id (PATCH) - should replace all types', async () => {
+    it('/api/v1/pokemons/:id (PATCH) - should replace all types', async () => {
         const existingPokemon = new Pokemon(
             6,
             'Charizard',
@@ -191,7 +191,7 @@ describe('PokemonController (e2e)', () => {
         };
 
         return request(app.getHttpServer())
-            .patch('/pokemons/6')
+            .patch('/api/v1/pokemons/6')
             .send(updateDto)
             .expect(200)
             .expect((res) => {
