@@ -6,6 +6,7 @@ import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/rep
 import { CreatePokemonDto } from '../../../src/infrastructure/pokemon/dtos/pokemon.dto';
 import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
 import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
+import { createTestApp } from '../../support/create-test-app';
 
 describe('PokemonController (e2e)', () => {
     let app: INestApplication;
@@ -21,8 +22,7 @@ describe('PokemonController (e2e)', () => {
             .useValue(repo)
             .compile();
 
-        app = moduleFixture.createNestApplication();
-        await app.init();
+        app = await createTestApp(moduleFixture);
     });
 
     afterEach(async () => {
