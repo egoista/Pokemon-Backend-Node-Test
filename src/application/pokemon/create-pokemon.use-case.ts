@@ -1,5 +1,5 @@
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
-import { PokemonRepository } from '../../domain/pokemon/pokemon.repository';
+import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonAlreadyExistsError } from '../../domain/pokemon/pokemon.errors';
 
 export interface CreatePokemonInput {

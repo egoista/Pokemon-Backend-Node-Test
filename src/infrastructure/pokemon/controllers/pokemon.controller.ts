@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseFilters } from '@nestjs/common';
-import { CreatePokemonUseCase } from '../../application/pokemon/create-pokemon.use-case';
-import { CreatePokemonDto } from './pokemon.dto';
-import { PokemonPresenter } from './pokemon.presenter';
+import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemon.use-case';
+import { CreatePokemonDto } from '../dtos/pokemon.dto';
+import { PokemonPresenter } from '../presenters/pokemon.presenter';
 import { PokemonHttpExceptionFilter } from './pokemon.exception-filter';
 
 @Controller('pokemons')

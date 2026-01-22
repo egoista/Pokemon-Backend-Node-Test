@@ -6,7 +6,7 @@ import {
     InvalidPokemonIdError,
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
-} from '../../domain/pokemon/pokemon.errors';
+} from '../../../domain/pokemon/pokemon.errors';
 import { Response } from 'express';
 
 describe('PokemonHttpExceptionFilter', () => {

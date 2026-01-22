@@ -1,4 +1,4 @@
-import { Pokemon } from '../../domain/pokemon/pokemon.entity';
+import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 
 export class PokemonPresenter {
     id: number;

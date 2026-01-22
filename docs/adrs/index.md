@@ -18,3 +18,4 @@
 | [014](./014-http-error-using-filters.md) | HTTP Error Using Filters | Accepted |
 | [015](./015-testing-strategy.md) | Testing Strategy | Accepted |
 | [016](./016-use-supertest-for-controller-testing.md) | Use Supertest for Controller Integration Testing | Accepted |
+| [017](./017-test-support-in-memory-repository.md) | Test Support Folder for In-Memory Repositories | Accepted |

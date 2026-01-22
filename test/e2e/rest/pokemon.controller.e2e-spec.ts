@@ -1,41 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { PokemonController } from './pokemon.controller';
-import { CreatePokemonUseCase } from '../../application/pokemon/create-pokemon.use-case';
-import { CreatePokemonDto } from './pokemon.dto';
-import { Pokemon } from '../../domain/pokemon/pokemon.entity';
-import { PokemonRepository } from '../../domain/pokemon/pokemon.repository';
+import { AppModule } from '../../../src/app.module';
+import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/repositories/pokemon.repository.prisma';
+import { CreatePokemonDto } from '../../../src/infrastructure/pokemon/dtos/pokemon.dto';
+import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
+import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
 
 describe('PokemonController (e2e)', () => {
     let app: INestApplication;
-    let repo: PokemonRepository;
+    let repo: InMemoryPokemonRepository;
 
     beforeEach(async () => {
-        const repoMock = {
-            findByName: jest.fn(),
-            save: jest.fn(),
-        };
+        repo = new InMemoryPokemonRepository();
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            controllers: [PokemonController],
-            providers: [
-                {
-                    provide: CreatePokemonUseCase,
-                    useFactory: (r: PokemonRepository) => new CreatePokemonUseCase(r),
-                    inject: ['PokemonRepository'],
-                },
-                {
-                    provide: 'PokemonRepository',
-                    useValue: repoMock,
-                },
-            ],
-        }).compile();
+            imports: [AppModule],
+        })
+            .overrideProvider(PokemonRepositoryPrisma)
+            .useValue(repo)
+            .compile();
 
         app = moduleFixture.createNestApplication();
         await app.init();
-
-        repo = moduleFixture.get<PokemonRepository>('PokemonRepository');
     });
 
     afterEach(async () => {
@@ -49,16 +36,6 @@ describe('PokemonController (e2e)', () => {
             type: 'Electric',
         };
 
-        const pokemonEntity = new Pokemon(
-            1,
-            'Pikachu',
-            'Electric',
-            new Date('2023-01-01'),
-        );
-
-        (repo.findByName as jest.Mock).mockResolvedValue(null);
-        (repo.save as jest.Mock).mockResolvedValue(pokemonEntity);
-
         return request(app.getHttpServer())
             .post('/pokemons')
             .send(dto)
@@ -71,12 +48,6 @@ describe('PokemonController (e2e)', () => {
     });
 
     it('/pokemons (POST) - 409 Conflict if pokemon already exists', async () => {
-        const dto: CreatePokemonDto = {
-            id: 1,
-            name: 'Pikachu',
-            type: 'Electric',
-        };
-
         const existingPokemon = new Pokemon(
             1,
             'Pikachu',
@@ -84,7 +55,13 @@ describe('PokemonController (e2e)', () => {
             new Date('2023-01-01'),
         );
 
-        (repo.findByName as jest.Mock).mockResolvedValue(existingPokemon);
+        await repo.save(existingPokemon);
+
+        const dto: CreatePokemonDto = {
+            id: 1,
+            name: 'Pikachu',
+            type: 'Electric',
+        };
 
         return request(app.getHttpServer())
             .post('/pokemons')
@@ -102,8 +79,6 @@ describe('PokemonController (e2e)', () => {
             name: 'Pikachu',
             type: 'Electric',
         };
-
-        (repo.findByName as jest.Mock).mockResolvedValue(null);
 
         return request(app.getHttpServer())
             .post('/pokemons')

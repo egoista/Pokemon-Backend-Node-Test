@@ -1,8 +1,8 @@
 import { Resolver, Mutation, Args, ResolveField } from '@nestjs/graphql';
 import { UseFilters } from '@nestjs/common';
-import { CreatePokemonUseCase } from '../../application/pokemon/create-pokemon.use-case';
-import { CreatePokemonInput } from '../../graphql.schema';
-import { PokemonAlreadyExistsError } from '../../domain/pokemon/pokemon.errors';
+import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemon.use-case';
+import { CreatePokemonInput } from '../../graphql/generated/graphql.schema';
+import { PokemonAlreadyExistsError } from '../../../domain/pokemon/pokemon.errors';
 
 @Resolver('Pokemon')
 export class PokemonResolver {

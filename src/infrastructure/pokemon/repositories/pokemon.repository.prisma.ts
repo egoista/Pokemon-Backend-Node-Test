@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PokemonRepository } from '../../domain/pokemon/pokemon.repository';
-import { Pokemon } from '../../domain/pokemon/pokemon.entity';
-import { PrismaService } from '../../modules/prisma/prisma.service';
+import { PokemonRepository } from '../../../domain/pokemon/pokemon.repository.interface';
+import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class PokemonRepositoryPrisma implements PokemonRepository {
