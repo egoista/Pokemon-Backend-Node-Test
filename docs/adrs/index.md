@@ -14,3 +14,7 @@
 | [010](./010-commit-message-convention.md) | Commit Message Convention | Accepted |
 | [011](./011-feature-branch-strategy.md) | Feature Branch Strategy | Accepted |
 | [012](./012-use-domain-identifier-as-pk.md) | Domain Identifier as PK | Accepted |
+| [013](./013-error-ownership.md) | Error Ownership | Accepted |
+| [014](./014-http-error-using-filters.md) | HTTP Error Using Filters | Accepted |
+| [015](./015-testing-strategy.md) | Testing Strategy | Accepted |
+| [016](./016-use-supertest-for-controller-testing.md) | Use Supertest for Controller Integration Testing | Accepted |

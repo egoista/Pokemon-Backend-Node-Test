@@ -5,6 +5,13 @@ export class PokemonAlreadyExistsError extends Error {
     }
 }
 
+export class PokemonNotFoundError extends Error {
+    constructor(id: number) {
+        super(`Pokemon with id ${id} not found.`);
+        this.name = 'PokemonNotFoundError';
+    }
+}
+
 export class InvalidPokemonIdError extends Error {
     constructor() {
         super('Pokemon ID must be a positive integer.');
