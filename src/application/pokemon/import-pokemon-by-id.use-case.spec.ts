@@ -1,6 +1,6 @@
 import { ImportPokemonByIdUseCase } from './import-pokemon-by-id.use-case';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
-import { PokeApiClient, PokeApiPokemonDto } from '../../infrastructure/pokemon/poke-api.client';
+import { PokeApiClient, PokeApiPokemonDto } from './ports/poke-api.client.interface';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { Type } from '../../domain/type.entity';
 import { ValidationError } from '../shared/errors/application.errors';

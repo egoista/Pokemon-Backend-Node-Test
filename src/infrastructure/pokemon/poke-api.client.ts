@@ -5,19 +5,10 @@ import {
     ExternalApiTimeoutError,
     PokemonNotFoundInExternalApiError,
 } from '../../domain/pokemon/pokemon.errors';
-
-export interface PokeApiPokemonDto {
-    id: number;
-    name: string;
-    types: Array<{
-        type: {
-            name: string;
-        };
-    }>;
-}
+import { PokeApiClient, PokeApiPokemonDto } from '../../application/pokemon/ports/poke-api.client.interface';
 
 @Injectable()
-export class PokeApiClient {
+export class PokeApiClientImpl implements PokeApiClient {
     private readonly baseUrl: string;
     private readonly timeout: number;
 

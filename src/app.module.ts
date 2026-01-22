@@ -12,6 +12,9 @@ import { CacheModule } from "./infrastructure/cache/cache.module";
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { GqlThrottlerGuard } from "./infrastructure/common/guards/gql-throttler.guard";
 import { HttpCacheInterceptor } from "./infrastructure/common/interceptors/http-cache.interceptor";
+import { ConfigModule } from "@nestjs/config";
+import { envValidationSchema } from "./infrastructure/config/env.validation";
+import { HealthModule } from "./infrastructure/health/health.module";
 
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? "prisma";
 const useTypeOrm = pokemonRepositoryImpl === "typeorm";
@@ -23,6 +26,12 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: envValidationSchema,
+      cache: true,
+    }),
+    HealthModule,
     CacheModule,
     ThrottlerModule.forRootAsync({
       useFactory: () => [

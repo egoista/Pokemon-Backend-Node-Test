@@ -12,9 +12,11 @@ import { UpdatePokemonDto } from '../dtos/update-pokemon.dto';
 import { PokemonPresenter } from '../presenters/pokemon.presenter';
 import { PokemonListPresenter } from '../presenters/pokemon-list.presenter';
 import { PokemonHttpExceptionFilter } from './pokemon.exception-filter';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 // ARCH: HTTP adapter only; business rules live in use cases.
 // ADR-002: Clean Architecture. ADR-003: REST + GraphQL adapters. ADR-014: HTTP error mapping via filters.
+@ApiTags('pokemons')
 @Controller({
     path: 'pokemons',
     version: '1',
@@ -31,24 +33,38 @@ export class PokemonController {
     ) { }
 
     @Post()
+    @ApiOperation({ summary: 'Create a new Pokemon' })
+    @ApiResponse({ status: 201, description: 'The pokemon has been successfully created.', type: PokemonPresenter })
+    @ApiResponse({ status: 400, description: 'Invalid input.' })
+    @ApiResponse({ status: 409, description: 'Pokemon already exists.' })
     async create(@Body() body: CreatePokemonDto): Promise<PokemonPresenter> {
         const pokemon = await this.createPokemonUseCase.execute(body);
         return new PokemonPresenter(pokemon);
     }
 
     @Get()
+    @ApiOperation({ summary: 'List pokemons with pagination and filtering' })
+    @ApiResponse({ status: 200, description: 'Return list of pokemons.', type: PokemonListPresenter })
     async list(@Query() query: ListPokemonsQueryDto): Promise<PokemonListPresenter> {
         const result = await this.listPokemonsUseCase.execute(query);
         return new PokemonListPresenter(result);
     }
 
     @Get(':id')
+    @ApiOperation({ summary: 'Get a Pokemon by ID' })
+    @ApiParam({ name: 'id', description: 'Pokemon ID' })
+    @ApiResponse({ status: 200, description: 'Return the pokemon.', type: PokemonPresenter })
+    @ApiResponse({ status: 404, description: 'Pokemon not found.' })
     async getById(@Param('id', ParseIntPipe) id: number): Promise<PokemonPresenter> {
         const pokemon = await this.getPokemonByIdUseCase.execute(id);
         return new PokemonPresenter(pokemon);
     }
 
     @Patch(':id')
+    @ApiOperation({ summary: 'Update a Pokemon' })
+    @ApiParam({ name: 'id', description: 'Pokemon ID' })
+    @ApiResponse({ status: 200, description: 'The pokemon has been successfully updated.', type: PokemonPresenter })
+    @ApiResponse({ status: 404, description: 'Pokemon not found.' })
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() body: UpdatePokemonDto
@@ -58,11 +74,18 @@ export class PokemonController {
     }
 
     @Delete(':id')
+    @ApiOperation({ summary: 'Delete a Pokemon' })
+    @ApiParam({ name: 'id', description: 'Pokemon ID' })
+    @ApiResponse({ status: 200, description: 'The pokemon has been successfully deleted.' })
+    @ApiResponse({ status: 404, description: 'Pokemon not found.' })
     async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.deletePokemonUseCase.execute(id);
     }
 
     @Post('import')
+    @ApiOperation({ summary: 'Import a Pokemon from PokeAPI' })
+    @ApiResponse({ status: 201, description: 'The pokemon has been successfully imported.', type: PokemonPresenter })
+    @ApiResponse({ status: 404, description: 'Pokemon not found in external API.' })
     async import(@Body() body: ImportPokemonDto): Promise<PokemonPresenter> {
         const pokemon = await this.importPokemonByIdUseCase.execute(body);
         return new PokemonPresenter(pokemon);
