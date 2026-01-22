@@ -6,6 +6,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import { HelloModule } from "./modules/hello/hello.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { PokemonModule } from "./main/pokemon/pokemon.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
     }),
     HelloModule,
     PrismaModule,
+    PokemonModule,
     TypeOrmModule.forRoot({
       type: "sqlite",
       database: "./database/database_orm.sqlite",
@@ -31,4 +33,4 @@ import { TypeOrmModule } from "@nestjs/typeorm";
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

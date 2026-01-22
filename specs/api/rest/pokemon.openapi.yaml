@@ -1,0 +1,121 @@
+openapi: 3.0.0
+
+info:
+  title: Pokemon API
+  version: 1.0.0
+  description: REST API for managing Pokemons
+
+servers:
+  - url: /api/v1
+
+paths:
+  /pokemons:
+    get:
+      summary: List all Pokemons
+      responses:
+        '200':
+          description: A list of Pokemons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pokemon'
+
+    post:
+      summary: Create a new Pokemon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePokemonInput'
+      responses:
+        '201':
+          description: Pokemon created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pokemon'
+        '400':
+          description: Invalid input data
+        '409':
+          description: Pokemon with the same name already exists
+
+  /pokemons/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    patch:
+      summary: Update an existing Pokemon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePokemonInput'
+      responses:
+        '200':
+          description: Pokemon updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pokemon'
+        '400':
+          description: Invalid input data
+        '404':
+          description: Pokemon not found
+        '409':
+          description: Pokemon name already exists
+
+    delete:
+      summary: Delete a Pokemon
+      responses:
+        '204':
+          description: Pokemon deleted successfully
+        '404':
+          description: Pokemon not found
+
+components:
+  schemas:
+    Pokemon:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - type
+        - created_at
+
+    CreatePokemonInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+      required:
+        - name
+        - type
+
+    UpdatePokemonInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+      additionalProperties: false
