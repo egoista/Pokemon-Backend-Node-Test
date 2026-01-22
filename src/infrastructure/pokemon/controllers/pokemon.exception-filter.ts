@@ -11,7 +11,7 @@ import {
     InvalidPokemonIdError,
     InvalidPokemonNameError,
     InvalidPokemonTypeError,
-} from '../../domain/pokemon/pokemon.errors';
+} from '../../../domain/pokemon/pokemon.errors';
 
 @Catch(
     PokemonAlreadyExistsError,

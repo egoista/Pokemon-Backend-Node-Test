@@ -1,5 +1,5 @@
 import { CreatePokemonUseCase } from './create-pokemon.use-case';
-import { PokemonRepository } from '../../domain/pokemon/pokemon.repository';
+import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import {
     PokemonAlreadyExistsError,

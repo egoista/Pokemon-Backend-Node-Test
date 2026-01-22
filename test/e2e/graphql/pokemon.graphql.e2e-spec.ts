@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../../app.module';
-import { PokemonRepositoryPrisma } from './pokemon.repository.prisma';
-import { Pokemon } from '../../domain/pokemon/pokemon.entity';
-import { InMemoryPokemonRepository } from '../../../test/support/pokemon/in-memory-pokemon.repository';
+import { AppModule } from '../../../src/app.module';
+import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/repositories/pokemon.repository.prisma';
+import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
+import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
 
 describe('PokemonResolver (e2e)', () => {
   let app: INestApplication;

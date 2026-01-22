@@ -3,8 +3,8 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
-import { HelloModule } from "./modules/hello/hello.module";
-import { PrismaModule } from "./modules/prisma/prisma.module";
+import { HelloModule } from "./hello/hello.module";
+import { PrismaModule } from "./infrastructure/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PokemonModule } from "./main/pokemon/pokemon.module";
 
@@ -16,7 +16,7 @@ import { PokemonModule } from "./main/pokemon/pokemon.module";
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
       definitions: {
-        path: join(process.cwd(), "src/graphql.ts"),
+        path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
       },
     }),
     HelloModule,
