@@ -7,7 +7,7 @@ echo "🧪 Testing REST API"
 echo "--------------------------------------------------"
 
 echo "1. Creating Pokemon (Charizard-X) via REST..."
-curl -X POST "$BASE_URL/pokemons" \
+curl -X POST "$BASE_URL/api/v1/pokemons" \
   -H "Content-Type: application/json" \
   -d '{
     "id": 901,
@@ -17,11 +17,11 @@ curl -X POST "$BASE_URL/pokemons" \
 echo -e "\n"
 
 echo "2. Listing Pokemons (Filter by type Fire)..."
-curl -X GET "$BASE_URL/pokemons?type=Fire&limit=5"
+curl -X GET "$BASE_URL/api/v1/pokemons?type=Fire&limit=5"
 echo -e "\n"
 
 echo "3. Updating Pokemon (Charizard-X) types via REST (PATCH)..."
-curl -X PATCH "$BASE_URL/pokemons/901" \
+curl -X PATCH "$BASE_URL/api/v1/pokemons/901" \
   -H "Content-Type: application/json" \
   -d '{
     "types": ["Fire", "Flying"]
@@ -29,15 +29,15 @@ curl -X PATCH "$BASE_URL/pokemons/901" \
 echo -e "\n"
 
 echo "4. Getting Pokemon by ID (901)..."
-curl -X GET "$BASE_URL/pokemons/901"
+curl -X GET "$BASE_URL/api/v1/pokemons/901"
 echo -e "\n"
 
 echo "5. Deleting Pokemon (901) via REST..."
-curl -X DELETE "$BASE_URL/pokemons/901"
+curl -X DELETE "$BASE_URL/api/v1/pokemons/901"
 echo -e "\n"
 
 echo "6. Importing Pokemon (158 - Totodile) via REST..."
-curl -X POST "$BASE_URL/pokemons/import" \
+curl -X POST "$BASE_URL/api/v1/pokemons/import" \
   -H "Content-Type: application/json" \
   -d '{
     "id": 158
