@@ -6,6 +6,10 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import { PrismaModule } from "./infrastructure/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PokemonModule } from "./main/pokemon/pokemon.module";
+import { ThrottlerModule } from "@nestjs/throttler";
+import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { GqlThrottlerGuard } from "./infrastructure/common/guards/gql-throttler.guard";
+import { ThrottlerExceptionFilter } from "./infrastructure/common/filters/throttler-exception.filter";
 
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? "prisma";
 const useTypeOrm = pokemonRepositoryImpl === "typeorm";
@@ -17,6 +21,15 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
 
 @Module({
   imports: [
+
+    ThrottlerModule.forRootAsync({
+      useFactory: () => [
+        {
+          ttl: parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? "60000"),
+          limit: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS ?? "100"),
+        },
+      ],
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       typePaths: ["./**/*.graphql"],
@@ -25,23 +38,32 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
       definitions: isTestEnv
         ? undefined
         : {
-            path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
-          },
+          path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
+        },
     }),
     PokemonModule,
     ...(useTypeOrm
       ? [
-          TypeOrmModule.forRoot({
-            type: "sqlite",
-            database: "./database/database_orm.sqlite",
-            autoLoadEntities: true,
-            synchronize: true,
-            migrations: ["../typeorm/migrations/*.ts"],
-          }),
-        ]
+        TypeOrmModule.forRoot({
+          type: "sqlite",
+          database: "./database/database_orm.sqlite",
+          autoLoadEntities: true,
+          synchronize: true,
+          migrations: ["../typeorm/migrations/*.ts"],
+        }),
+      ]
       : [PrismaModule]),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: GqlThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ThrottlerExceptionFilter,
+    },
+  ],
 })
 export class AppModule { }

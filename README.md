@@ -55,3 +55,4 @@ Accepted values: `prisma` (default) or `typeorm`.
 - The project focuses on architectural clarity and testability over framework convenience.
 - Comments are intentionally minimal and reference ADRs when decisions are non-obvious.
 - Both REST and GraphQL share the same use cases.
+- Rate Limiting is implemented using `@nestjs/throttler` as it provides a standard, robust, and easy-to-configure solution for IP-based rate limiting in NestJS applications.
