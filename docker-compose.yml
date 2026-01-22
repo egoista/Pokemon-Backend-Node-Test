@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./database:/app/database
+      - ./prisma/dev.db:/app/prisma/dev.db
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - POKEMON_REPOSITORY=prisma
+      - POKEAPI_BASE_URL=https://pokeapi.co/api/v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -10,12 +10,15 @@ import { ListPokemonsUseCase } from '../../application/pokemon/list-pokemons.use
 import { UpdatePokemonUseCase } from '../../application/pokemon/update-pokemon.use-case';
 import { DeletePokemonUseCase } from '../../application/pokemon/delete-pokemon.use-case';
 import { ImportPokemonByIdUseCase } from '../../application/pokemon/import-pokemon-by-id.use-case';
-import { PokeApiClient } from '../../infrastructure/pokemon/poke-api.client';
+import { PokeApiClientImpl } from '../../infrastructure/pokemon/poke-api.client';
+import { PokeApiClient } from '../../application/pokemon/ports/poke-api.client.interface';
 import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructure/pokemon/graphql/pokemon.resolver';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
+import { TypeEntity } from '../../infrastructure/pokemon/entities/type.entity.typeorm'; // Check path
 
 const POKEMON_REPOSITORY = 'POKEMON_REPOSITORY';
+const POKE_API_CLIENT = 'POKE_API_CLIENT';
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? 'prisma';
 const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
 
@@ -23,16 +26,21 @@ const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
 // ADR-006: Manual composition root. ADR-004: Multiple ORMs via repository abstraction.
 @Module({
     imports: useTypeOrm
-        ? [TypeOrmModule.forFeature([PokemonEntity])]
+        ? [TypeOrmModule.forFeature([PokemonEntity, TypeEntity])]
         : [PrismaModule],
     controllers: [PokemonController],
     providers: [
         ...(useTypeOrm ? [PokemonRepositoryTypeORM] : [PokemonRepositoryPrisma]),
         PokemonResolver,
         CreatePokemonResultResolver,
+        PokeApiClientImpl,
         useTypeOrm
             ? { provide: POKEMON_REPOSITORY, useExisting: PokemonRepositoryTypeORM }
             : { provide: POKEMON_REPOSITORY, useExisting: PokemonRepositoryPrisma },
+        {
+            provide: POKE_API_CLIENT,
+            useExisting: PokeApiClientImpl
+        },
         {
             provide: CreatePokemonUseCase,
             useFactory: (repo: PokemonRepository) => {
@@ -68,13 +76,12 @@ const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
             },
             inject: [POKEMON_REPOSITORY],
         },
-        PokeApiClient,
         {
             provide: ImportPokemonByIdUseCase,
             useFactory: (repo: PokemonRepository, client: PokeApiClient) => {
                 return new ImportPokemonByIdUseCase(repo, client);
             },
-            inject: [POKEMON_REPOSITORY, PokeApiClient],
+            inject: [POKEMON_REPOSITORY, POKE_API_CLIENT],
         },
     ],
 })

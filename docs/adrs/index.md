@@ -20,3 +20,5 @@
 | [016](./016-use-supertest-for-controller-testing.md) | Use Supertest for Controller Integration Testing | Accepted |
 | [017](./017-test-support-in-memory-repository.md) | Test Support Folder for In-Memory Repositories | Accepted |
 | [018](./018-architecture-comment-strategy.md) | Architecture Comment Strategy | Accepted |
+| [019](./019-caching-strategy.md) | Caching Strategy | Accepted |
+| [020](./020-adopt-openapi.md) | Adopt OpenAPI (Swagger) | Accepted |

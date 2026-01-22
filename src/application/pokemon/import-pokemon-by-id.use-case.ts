@@ -1,7 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
-import { PokeApiClient } from '../../infrastructure/pokemon/poke-api.client';
+import { PokeApiClient } from './ports/poke-api.client.interface';
 import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
 
@@ -9,12 +8,8 @@ export interface ImportPokemonInput {
     id: number;
 }
 
-@Injectable()
 export class ImportPokemonByIdUseCase {
     constructor(
-        // @Inject('PokemonRepository') // Assuming injection token is 'PokemonRepository' based on other use cases? 
-        // Or maybe direct injection if token is same as interface name (unlikely in NestJS with interfaces)
-        // I need to check how other use cases inject repository.
         private readonly pokemonRepository: PokemonRepository,
         private readonly pokeApiClient: PokeApiClient
     ) { }
