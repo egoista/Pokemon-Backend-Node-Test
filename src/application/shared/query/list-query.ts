@@ -30,6 +30,7 @@ export function normalizeListQuery<TField extends string>(input: ListQueryInput,
     allowedSortBy: readonly TField[];
     defaultSortOrder?: SortOrder;
 }): ListQuerySpec<TField> {
+    validateInput(input);
     const page = parsePositiveInt(input.page ?? opts.defaultPage ?? 1, 'page');
     const limit = parsePositiveInt(input.limit ?? opts.defaultLimit ?? 20, 'limit');
 
@@ -57,6 +58,24 @@ export function normalizeListQuery<TField extends string>(input: ListQueryInput,
         sortBy,
         sortOrder,
     };
+}
+
+function validateInput(input: ListQueryInput): void {
+    if (!input) {
+        throw new ValidationError('Query is required.');
+    }
+    if (input.page !== undefined && typeof input.page !== 'number') {
+        throw new ValidationError('page must be a number.');
+    }
+    if (input.limit !== undefined && typeof input.limit !== 'number') {
+        throw new ValidationError('limit must be a number.');
+    }
+    if (input.sortBy !== undefined && typeof input.sortBy !== 'string') {
+        throw new ValidationError('sortBy must be a string.');
+    }
+    if (input.sortOrder !== undefined && typeof input.sortOrder !== 'string') {
+        throw new ValidationError('sortOrder must be a string.');
+    }
 }
 
 function parsePositiveInt(value: number, field: string): number {
