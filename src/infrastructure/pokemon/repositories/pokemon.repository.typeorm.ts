@@ -131,7 +131,7 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
         return new Pokemon(
             entity.id,
             entity.name,
-            (entity.types || []).map((t) => new Type(t.id, t.name, t.created_at)),
+            (entity.types || []).map((t) => new Type(t.name, t.created_at, t.id)),
             entity.created_at,
         );
     }

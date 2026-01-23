@@ -40,7 +40,7 @@ describe('ImportPokemonByIdUseCase', () => {
         const importedPokemon = new Pokemon(
             id,
             'totodile',
-            [new Type(0, 'water', expect.any(Date))],
+            [new Type('water', expect.any(Date))],
         );
 
         (pokeApiClient.getPokemonById as jest.Mock).mockResolvedValue(pokeApiDto);

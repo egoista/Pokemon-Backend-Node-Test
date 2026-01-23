@@ -57,7 +57,7 @@ describe('PokemonController (e2e)', () => {
         const existingPokemon = new Pokemon(
             1,
             'Pikachu',
-            [new Type(1, 'Electric', new Date('2023-01-01'))],
+            [new Type('Electric', new Date('2023-01-01'), 1)],
             new Date('2023-01-01'),
         );
 
@@ -96,9 +96,9 @@ describe('PokemonController (e2e)', () => {
     });
 
     it('/api/v1/pokemons (GET) - supports filters and pagination', async () => {
-        await repo.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
-        await repo.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
-        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
+        await repo.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
+        await repo.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
+        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
 
         return request(app.getHttpServer())
             .get('/api/v1/pokemons')
@@ -117,9 +117,9 @@ describe('PokemonController (e2e)', () => {
     });
 
     it('/api/v1/pokemons (GET) - supports sort by id desc', async () => {
-        await repo.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
-        await repo.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
-        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
+        await repo.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
+        await repo.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
+        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
 
         return request(app.getHttpServer())
             .get('/api/v1/pokemons')
@@ -155,7 +155,7 @@ describe('PokemonController (e2e)', () => {
         const existingPokemon = new Pokemon(
             1,
             'Pikachu',
-            [new Type(1, 'Electric', new Date('2023-01-01'))],
+            [new Type('Electric', new Date('2023-01-01'), 1)],
             new Date('2023-01-01'),
         );
         await repo.save(existingPokemon);
@@ -181,7 +181,7 @@ describe('PokemonController (e2e)', () => {
         const existingPokemon = new Pokemon(
             6,
             'Charizard',
-            [new Type(1, 'Fire', new Date('2023-01-01')), new Type(2, 'Flying', new Date('2023-01-01'))],
+            [new Type('Fire', new Date('2023-01-01'), 1), new Type('Flying', new Date('2023-01-01'), 2)],
             new Date('2023-01-01'),
         );
         await repo.save(existingPokemon);

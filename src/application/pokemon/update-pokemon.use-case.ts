@@ -36,7 +36,7 @@ export class UpdatePokemonUseCase {
         }
         if (types !== undefined) {
             pokemon.types = types.map(
-                (typeName) => new Type(0, typeName, new Date())
+                (typeName) => new Type(typeName, new Date())
             );
         }
 

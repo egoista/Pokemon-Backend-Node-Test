@@ -32,7 +32,7 @@ describe('CreatePokemonUseCase', () => {
 
     it('should create a pokemon successfully', async () => {
         const input = { id: 1, name: 'Pikachu', types: ['Electric'] };
-        const typeEntities = [new Type(0, 'Electric', expect.any(Date))];
+        const typeEntities = [new Type('Electric', expect.any(Date))];
         const createdPokemon = new Pokemon(1, 'Pikachu', typeEntities);
 
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
@@ -52,7 +52,7 @@ describe('CreatePokemonUseCase', () => {
 
     it('should throw PokemonAlreadyExistsError if pokemon exists', async () => {
         const input = { id: 1, name: 'Pikachu', types: ['Electric'] };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())]);
+        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)]);
 
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(existingPokemon);
 
@@ -89,8 +89,8 @@ describe('CreatePokemonUseCase', () => {
     it('should create a pokemon with multiple types', async () => {
         const input = { id: 6, name: 'Charizard', types: ['Fire', 'Flying'] };
         const typeEntities = [
-            new Type(0, 'Fire', expect.any(Date)),
-            new Type(0, 'Flying', expect.any(Date)),
+            new Type('Fire', expect.any(Date)),
+            new Type('Flying', expect.any(Date)),
         ];
         const createdPokemon = new Pokemon(6, 'Charizard', typeEntities);
 

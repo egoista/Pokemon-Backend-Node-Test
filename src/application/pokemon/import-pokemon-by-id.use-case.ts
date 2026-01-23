@@ -23,7 +23,7 @@ export class ImportPokemonByIdUseCase {
 
         // 2. Map to domain entities
         const types = pokeApiDto.types.map(
-            (t) => new Type(0, t.type.name, new Date())
+            (t) => new Type(t.type.name, new Date())
         );
 
         // We use the ID from PokeAPI

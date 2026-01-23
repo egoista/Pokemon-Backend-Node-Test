@@ -23,8 +23,8 @@ describe('ListPokemonsUseCase', () => {
     });
 
     it('should list pokemons with pagination metadata', async () => {
-        const pikachu = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
-        const bulbasaur = new Pokemon(2, 'Bulbasaur', [new Type(2, 'Grass', new Date())], new Date());
+        const pikachu = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
+        const bulbasaur = new Pokemon(2, 'Bulbasaur', [new Type('Grass', new Date(), 2)], new Date());
 
         (pokemonRepository.findWithFilters as jest.Mock).mockResolvedValue({
             data: [pikachu, bulbasaur],

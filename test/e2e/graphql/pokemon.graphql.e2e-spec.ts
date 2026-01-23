@@ -86,7 +86,7 @@ describe('PokemonResolver (e2e)', () => {
     const types = ["Electric"];
 
     // Seed fake DB
-    await fakeRepository.save(new Pokemon(999, name, [new Type(1, "Electric", new Date())]));
+    await fakeRepository.save(new Pokemon(999, name, [new Type('Electric', new Date(), 1)]));
 
     const mutation = `
       mutation {
@@ -115,9 +115,9 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should list pokemons with filters and pagination', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
 
     const query = `
       query {
@@ -161,9 +161,9 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should support sorting by created_at desc', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date('2023-01-01'))], new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date('2023-01-02'))], new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type(3, 'Grass', new Date('2023-01-03'))], new Date('2023-01-03')));
+    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
+    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
+    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
 
     const query = `
       query {
@@ -231,7 +231,7 @@ describe('PokemonResolver (e2e)', () => {
     const existingPokemon = new Pokemon(
       1,
       'Pikachu',
-      [new Type(1, 'Electric', new Date('2023-01-01'))],
+      [new Type('Electric', new Date('2023-01-01'), 1)],
       new Date('2023-01-01'),
     );
     await fakeRepository.save(existingPokemon);
@@ -268,7 +268,7 @@ describe('PokemonResolver (e2e)', () => {
     const existingPokemon = new Pokemon(
       6,
       'Charizard',
-      [new Type(1, 'Fire', new Date('2023-01-01')), new Type(2, 'Flying', new Date('2023-01-01'))],
+      [new Type('Fire', new Date('2023-01-01'), 1), new Type('Flying', new Date('2023-01-01'), 2)],
       new Date('2023-01-01'),
     );
     await fakeRepository.save(existingPokemon);
