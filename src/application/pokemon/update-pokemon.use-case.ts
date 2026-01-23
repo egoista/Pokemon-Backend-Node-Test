@@ -3,6 +3,7 @@ import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.inter
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
+import { AppLogger, NullLogger } from '../shared/logger/logger.interface';
 
 export interface UpdatePokemonInput {
     id: number;
@@ -12,7 +13,8 @@ export interface UpdatePokemonInput {
 
 export class UpdatePokemonUseCase {
     constructor(
-        private readonly pokemonRepository: PokemonRepository
+        private readonly pokemonRepository: PokemonRepository,
+        private readonly logger: AppLogger = new NullLogger(),
     ) { }
 
     async execute(input: UpdatePokemonInput): Promise<Pokemon> {
@@ -40,7 +42,19 @@ export class UpdatePokemonUseCase {
             );
         }
 
-        return this.pokemonRepository.update(pokemon);
+        const updatedPokemon = await this.pokemonRepository.update(pokemon);
+        const updatedFields: string[] = [];
+        if (name !== undefined) {
+            updatedFields.push('name');
+        }
+        if (types !== undefined) {
+            updatedFields.push('types');
+        }
+        this.logger.info('pokemon.updated', {
+            pokemonId: updatedPokemon.id,
+            updatedFields,
+        });
+        return updatedPokemon;
     }
 
     private validateInput(input: UpdatePokemonInput): void {
