@@ -282,6 +282,9 @@ components:
     CreatePokemonInput:
       type: object
       properties:
+        id:
+          type: integer
+          description: Client-provided Pokemon ID
         name:
           type: string
         types:
@@ -289,6 +292,7 @@ components:
           items:
             type: string
       required:
+        - id
         - name
         - types
 

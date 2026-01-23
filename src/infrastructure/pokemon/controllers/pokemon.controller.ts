@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -108,10 +109,11 @@ export class PokemonController {
   @ApiOperation({ summary: 'Delete a Pokemon' })
   @ApiParam({ name: 'id', description: 'Pokemon ID' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'The pokemon has been successfully deleted.',
   })
   @ApiResponse({ status: 404, description: 'Pokemon not found.' })
+  @HttpCode(204)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.deletePokemonUseCase.execute(id);
   }
@@ -119,7 +121,7 @@ export class PokemonController {
   @Post('import')
   @ApiOperation({ summary: 'Import a Pokemon from PokeAPI' })
   @ApiResponse({
-    status: 201,
+    status: 200,
     description: 'The pokemon has been successfully imported.',
     type: PokemonPresenter,
   })
@@ -127,6 +129,7 @@ export class PokemonController {
     status: 404,
     description: 'Pokemon not found in external API.',
   })
+  @HttpCode(200)
   async import(@Body() body: ImportPokemonDto): Promise<PokemonPresenter> {
     const pokemon = await this.importPokemonByIdUseCase.execute(body);
     return new PokemonPresenter(pokemon);

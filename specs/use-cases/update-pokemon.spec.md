@@ -9,15 +9,16 @@ Updates the details of an existing Pokemon.
 ## Input Data
 - `id`: Integer (Required)
 - `name`: String (Optional)
-- `type`: String (Optional)
+- `types`: List<String> (Optional)
 
 ## Output Data
 - `Pokemon`: The updated Pokemon entity.
 
 ## Business Rules
-- At least one field (`name` or `type`) must be provided.
+- At least one field (`name` or `types`) must be provided.
+- `id` must be a positive integer.
 - If provided, `name` must not be empty.
-- If provided, `type` must not be empty.
+- If provided, `types` must not be empty.
 - `name` must be unique across all Pokemons.
 
 ## Errors
@@ -37,6 +38,7 @@ Updates the details of an existing Pokemon.
      - If it exists, throw `PokemonAlreadyExistsError`.
 4. **Update Entity**  
    - Apply valid changes to the Pokemon entity.
+   - If `types` is provided, replace all types.
 5. **Persist Entity**  
    - Save the updated Pokemon using the repository.
 6. **Return Result**  

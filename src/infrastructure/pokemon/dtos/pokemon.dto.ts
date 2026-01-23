@@ -10,7 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreatePokemonDto {
   @ApiProperty({
     example: 1,
-    description: 'The unique identifier of the Pokemon',
+    description: 'Client-provided Pokemon ID',
   })
   @IsInt()
   @IsPositive()
