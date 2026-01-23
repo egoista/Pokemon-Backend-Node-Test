@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 
-describe('PokemonModule', () => {
+describe('PokemonPersistenceModule', () => {
   const originalEnv = process.env.POKEMON_REPOSITORY;
 
   afterEach(() => {
@@ -13,64 +13,41 @@ describe('PokemonModule', () => {
     jest.resetModules();
   });
 
-  it('uses PrismaModule when repository is prisma', async () => {
+  it('uses Prisma persistence when repository is prisma', async () => {
     process.env.POKEMON_REPOSITORY = 'prisma';
     jest.resetModules();
-    const module = await import('./pokemon.module');
+    const module = await import('./pokemon-persistence.module');
     const imports = Reflect.getMetadata(
       MODULE_METADATA.IMPORTS,
-      module.PokemonModule,
+      module.PokemonPersistenceModule,
     ) as any[];
-    const flattenedImports = imports.flatMap((entry: any) =>
-      Array.isArray(entry) ? entry : [entry],
+    const hasPrismaImport = imports.some(
+      (entry) => entry?.name === 'PokemonPersistencePrismaModule',
     );
-    const providers = Reflect.getMetadata(
-      MODULE_METADATA.PROVIDERS,
-      module.PokemonModule,
-    ) as any[];
-
-    const hasPrismaImport = flattenedImports.some(
-      (entry) => entry?.name === 'PrismaModule',
-    );
-    const hasPrismaProvider = providers.some(
-      (provider) => provider?.name === 'PokemonRepositoryPrisma',
-    );
-    const hasTypeOrmProvider = providers.some(
-      (provider) => provider?.name === 'PokemonRepositoryTypeORM',
+    const hasTypeOrmImport = imports.some(
+      (entry) => entry?.name === 'PokemonPersistenceTypeormModule',
     );
 
     expect(hasPrismaImport).toBe(true);
-    expect(hasPrismaProvider).toBe(true);
-    expect(hasTypeOrmProvider).toBe(false);
+    expect(hasTypeOrmImport).toBe(false);
   });
 
-  it('uses TypeOrmModule when repository is typeorm', async () => {
+  it('uses TypeORM persistence when repository is typeorm', async () => {
     process.env.POKEMON_REPOSITORY = 'typeorm';
     jest.resetModules();
-    const module = await import('./pokemon.module');
+    const module = await import('./pokemon-persistence.module');
     const imports = Reflect.getMetadata(
       MODULE_METADATA.IMPORTS,
-      module.PokemonModule,
+      module.PokemonPersistenceModule,
     ) as any[];
-    const flattenedImports = imports.flatMap((entry: any) =>
-      Array.isArray(entry) ? entry : [entry],
+    const hasTypeOrmImport = imports.some(
+      (entry) => entry?.name === 'PokemonPersistenceTypeormModule',
     );
-    const providers = Reflect.getMetadata(
-      MODULE_METADATA.PROVIDERS,
-      module.PokemonModule,
-    ) as any[];
-    const hasTypeOrmImport = flattenedImports.some(
-      (entry) => entry?.module?.name === 'TypeOrmModule',
-    );
-    const hasTypeOrmProvider = providers.some(
-      (provider) => provider?.name === 'PokemonRepositoryTypeORM',
-    );
-    const hasPrismaProvider = providers.some(
-      (provider) => provider?.name === 'PokemonRepositoryPrisma',
+    const hasPrismaImport = imports.some(
+      (entry) => entry?.name === 'PokemonPersistencePrismaModule',
     );
 
     expect(hasTypeOrmImport).toBe(true);
-    expect(hasTypeOrmProvider).toBe(true);
-    expect(hasPrismaProvider).toBe(false);
+    expect(hasPrismaImport).toBe(false);
   });
 });

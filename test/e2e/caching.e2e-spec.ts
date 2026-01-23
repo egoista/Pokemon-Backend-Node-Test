@@ -1,38 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../../src/app.module';
+import { AppPlatformModule } from '../../src/main/app-platform.module';
+import { PokemonApiRestModule } from '../../src/main/pokemon/pokemon-api-rest.module';
+import { createTestApp } from '../support/create-test-app';
+import { InMemoryPokemonRepository } from '../support/pokemon/in-memory-pokemon.repository';
+import { TestPokemonIntegrationModule } from '../support/test-pokemon-integration.module';
+import { TestPokemonPersistenceModule } from '../support/test-pokemon-persistence.module';
 
 describe('Caching Strategy (e2e)', () => {
   let app: INestApplication;
+  let repo: InMemoryPokemonRepository;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [
+        AppPlatformModule,
+        PokemonApiRestModule,
+        TestPokemonPersistenceModule,
+        TestPokemonIntegrationModule,
+      ],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-
-    app.setGlobalPrefix('api', {
-      exclude: ['graphql'],
-    });
-
-    app.enableVersioning({
-      type: VersioningType.URI,
-    });
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        transformOptions: { enableImplicitConversion: true },
-      }),
-    );
-    await app.listen(0, '127.0.0.1');
+    app = await createTestApp(moduleFixture);
+    repo = moduleFixture.get(InMemoryPokemonRepository);
   }, 30000); // Increase timeout for database connection
+
+  beforeEach(() => {
+    repo.clear();
+  });
 
   afterAll(async () => {
     // Clear cache maybe?

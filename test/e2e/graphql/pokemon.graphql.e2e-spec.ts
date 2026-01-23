@@ -1,29 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../../../src/app.module';
-import { PokemonRepositoryPrisma } from '../../../src/infrastructure/pokemon/repositories/pokemon.repository.prisma';
+import { AppPlatformModule } from '../../../src/main/app-platform.module';
+import { PokemonApiGraphqlModule } from '../../../src/main/pokemon/pokemon-api-graphql.module';
 import { Pokemon } from '../../../src/domain/pokemon/pokemon.entity';
 import { Type } from '../../../src/domain/type.entity';
 import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokemon.repository';
 
 import { createTestApp } from '../../support/create-test-app';
+import { TestPokemonIntegrationModule } from '../../support/test-pokemon-integration.module';
+import { TestPokemonPersistenceModule } from '../../support/test-pokemon-persistence.module';
 
 describe('PokemonResolver (e2e)', () => {
   let app: INestApplication;
   let fakeRepository: InMemoryPokemonRepository;
 
   beforeAll(async () => {
-    fakeRepository = new InMemoryPokemonRepository();
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(PokemonRepositoryPrisma)
-      .useValue(fakeRepository)
-      .compile();
+      imports: [
+        AppPlatformModule,
+        PokemonApiGraphqlModule,
+        TestPokemonPersistenceModule,
+        TestPokemonIntegrationModule,
+      ],
+    }).compile();
 
     app = await createTestApp(moduleFixture);
+    fakeRepository = moduleFixture.get(InMemoryPokemonRepository);
   });
 
   beforeEach(() => {

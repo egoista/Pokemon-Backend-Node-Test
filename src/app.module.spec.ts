@@ -67,7 +67,14 @@ describe('AppModule', () => {
       MODULE_METADATA.IMPORTS,
       module.AppModule,
     ) as any[];
-    const graphqlModule = imports.find(
+    const graphqlApiModule = imports.find(
+      (entry) => entry?.name === 'PokemonApiGraphqlModule',
+    );
+    const graphqlImports = Reflect.getMetadata(
+      MODULE_METADATA.IMPORTS,
+      graphqlApiModule,
+    ) as any[];
+    const graphqlModule = graphqlImports.find(
       (entry) => entry?.module?.name === 'GraphQLModule',
     );
     const gqlOptionsProvider = graphqlModule?.providers?.find(
@@ -96,14 +103,18 @@ describe('AppModule', () => {
       MODULE_METADATA.IMPORTS,
       module.AppModule,
     ) as any[];
-    const flattenedImports = imports.flatMap((entry: any) =>
-      Array.isArray(entry) ? entry : [entry],
+    const persistenceModule = imports.find(
+      (entry) => entry?.name === 'PokemonPersistenceModule',
     );
-    const hasTypeOrmImport = flattenedImports.some(
-      (entry) => entry?.module?.name === 'TypeOrmModule',
+    const persistenceImports = Reflect.getMetadata(
+      MODULE_METADATA.IMPORTS,
+      persistenceModule,
+    ) as any[];
+    const hasTypeOrmImport = persistenceImports.some(
+      (entry) => entry?.name === 'PokemonPersistenceTypeormModule',
     );
-    const hasPrismaImport = flattenedImports.some(
-      (entry) => entry?.name === 'PrismaModule',
+    const hasPrismaImport = persistenceImports.some(
+      (entry) => entry?.name === 'PokemonPersistencePrismaModule',
     );
 
     expect(hasTypeOrmImport).toBe(true);
@@ -122,7 +133,14 @@ describe('AppModule', () => {
       MODULE_METADATA.IMPORTS,
       module.AppModule,
     ) as any[];
-    const throttlerModule = imports.find(
+    const platformModule = imports.find(
+      (entry) => entry?.name === 'AppPlatformModule',
+    );
+    const platformImports = Reflect.getMetadata(
+      MODULE_METADATA.IMPORTS,
+      platformModule,
+    ) as any[];
+    const throttlerModule = platformImports.find(
       (entry) => entry?.module?.name === 'ThrottlerModule',
     );
     const optionsProvider = throttlerModule?.providers?.find(
@@ -146,7 +164,14 @@ describe('AppModule', () => {
       MODULE_METADATA.IMPORTS,
       module.AppModule,
     ) as any[];
-    const throttlerModule = imports.find(
+    const platformModule = imports.find(
+      (entry) => entry?.name === 'AppPlatformModule',
+    );
+    const platformImports = Reflect.getMetadata(
+      MODULE_METADATA.IMPORTS,
+      platformModule,
+    ) as any[];
+    const throttlerModule = platformImports.find(
       (entry) => entry?.module?.name === 'ThrottlerModule',
     );
     const optionsProvider = throttlerModule?.providers?.find(
