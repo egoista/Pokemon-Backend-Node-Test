@@ -4,6 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   testRegex: '.spec.ts$',
   maxWorkers: 1,
+  testPathIgnorePatterns: ['/test/e2e/'],
   // NOTE: Exclude TypeORM decorator files and test-only helpers from coverage.
   coveragePathIgnorePatterns: [
     '/src/infrastructure/pokemon/entities/pokemon.entity.typeorm.ts',

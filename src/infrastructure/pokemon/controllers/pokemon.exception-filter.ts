@@ -1,57 +1,57 @@
 import {
-    ArgumentsHost,
-    Catch,
-    ExceptionFilter,
-    HttpStatus,
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
 import {
-    PokemonAlreadyExistsError,
-    PokemonNotFoundError,
-    InvalidPokemonIdError,
-    InvalidPokemonNameError,
-    InvalidPokemonTypeError,
+  PokemonAlreadyExistsError,
+  PokemonNotFoundError,
+  InvalidPokemonIdError,
+  InvalidPokemonNameError,
+  InvalidPokemonTypeError,
 } from '../../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../../../application/shared/errors/application.errors';
 
 // ARCH: Map domain errors to HTTP responses at the boundary.
 // ADR-013: Error ownership. ADR-014: HTTP error mapping via filters.
 @Catch(
-    PokemonAlreadyExistsError,
-    PokemonNotFoundError,
-    InvalidPokemonIdError,
-    InvalidPokemonNameError,
-    InvalidPokemonTypeError,
-    ValidationError,
+  PokemonAlreadyExistsError,
+  PokemonNotFoundError,
+  InvalidPokemonIdError,
+  InvalidPokemonNameError,
+  InvalidPokemonTypeError,
+  ValidationError,
 )
 export class PokemonHttpExceptionFilter implements ExceptionFilter {
-    catch(error: unknown, host: ArgumentsHost) {
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse<Response>();
+  catch(error: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
 
-        let status = HttpStatus.INTERNAL_SERVER_ERROR;
-        let message = 'Internal server error';
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Internal server error';
 
-        if (error instanceof PokemonAlreadyExistsError) {
-            status = HttpStatus.CONFLICT;
-            message = error.message;
-        } else if (error instanceof PokemonNotFoundError) {
-            status = HttpStatus.NOT_FOUND;
-            message = error.message;
-        } else if (
-            error instanceof InvalidPokemonIdError ||
-            error instanceof InvalidPokemonNameError ||
-            error instanceof InvalidPokemonTypeError ||
-            error instanceof ValidationError
-        ) {
-            status = HttpStatus.BAD_REQUEST;
-            message = error.message;
-        }
-
-        response.status(status).json({
-            statusCode: status,
-            message: message,
-            error: error instanceof Error ? error.name : 'UnknownError',
-        });
+    if (error instanceof PokemonAlreadyExistsError) {
+      status = HttpStatus.CONFLICT;
+      message = error.message;
+    } else if (error instanceof PokemonNotFoundError) {
+      status = HttpStatus.NOT_FOUND;
+      message = error.message;
+    } else if (
+      error instanceof InvalidPokemonIdError ||
+      error instanceof InvalidPokemonNameError ||
+      error instanceof InvalidPokemonTypeError ||
+      error instanceof ValidationError
+    ) {
+      status = HttpStatus.BAD_REQUEST;
+      message = error.message;
     }
+
+    response.status(status).json({
+      statusCode: status,
+      message: message,
+      error: error instanceof Error ? error.name : 'UnknownError',
+    });
+  }
 }

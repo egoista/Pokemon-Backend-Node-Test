@@ -1,14 +1,14 @@
 // ARCH: Outbound port for external PokeAPI integration.
 export interface PokeApiPokemonDto {
-    id: number;
-    name: string;
-    types: Array<{
-        type: {
-            name: string;
-        };
-    }>;
+  id: number;
+  name: string;
+  types: Array<{
+    type: {
+      name: string;
+    };
+  }>;
 }
 
 export interface PokeApiClient {
-    getPokemonById(id: number): Promise<PokeApiPokemonDto>;
+  getPokemonById(id: number): Promise<PokeApiPokemonDto>;
 }

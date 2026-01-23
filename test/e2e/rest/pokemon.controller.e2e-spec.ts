@@ -10,195 +10,247 @@ import { InMemoryPokemonRepository } from '../../support/pokemon/in-memory-pokem
 import { createTestApp } from '../../support/create-test-app';
 
 describe('PokemonController (e2e)', () => {
-    let app: INestApplication;
-    let repo: InMemoryPokemonRepository;
+  let app: INestApplication;
+  let repo: InMemoryPokemonRepository;
 
-    beforeAll(async () => {
-        repo = new InMemoryPokemonRepository();
+  beforeAll(async () => {
+    repo = new InMemoryPokemonRepository();
 
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
-        })
-            .overrideProvider(PokemonRepositoryPrisma)
-            .useValue(repo)
-            .compile();
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(PokemonRepositoryPrisma)
+      .useValue(repo)
+      .compile();
 
-        app = await createTestApp(moduleFixture);
-    });
+    app = await createTestApp(moduleFixture);
+  });
 
-    beforeEach(() => {
-        repo.clear();
-    });
+  beforeEach(() => {
+    repo.clear();
+  });
 
-    afterAll(async () => {
-        await app.close();
-    });
+  afterAll(async () => {
+    await app.close();
+  });
 
-    it('/api/v1/pokemons (POST) - success', async () => {
-        const dto: CreatePokemonDto = {
-            id: 1,
-            name: 'Pikachu',
-            types: ['Electric'],
-        };
+  it('/api/v1/pokemons (POST) - success', async () => {
+    const dto: CreatePokemonDto = {
+      id: 1,
+      name: 'Pikachu',
+      types: ['Electric'],
+    };
 
-        return request(app.getHttpServer())
-            .post('/api/v1/pokemons')
-            .send(dto)
-            .expect(201)
-            .expect((res) => {
-                expect(res.body.id).toBe(1);
-                expect(res.body.name).toBe('Pikachu');
-                expect(res.body.types).toHaveLength(1);
-                expect(res.body.types[0].name).toBe('Electric');
-            });
-    });
+    return request(app.getHttpServer())
+      .post('/api/v1/pokemons')
+      .send(dto)
+      .expect(201)
+      .expect((res) => {
+        expect(res.body.id).toBe(1);
+        expect(res.body.name).toBe('Pikachu');
+        expect(res.body.types).toHaveLength(1);
+        expect(res.body.types[0].name).toBe('Electric');
+      });
+  });
 
-    it('/api/v1/pokemons (POST) - 409 Conflict if pokemon already exists', async () => {
-        const existingPokemon = new Pokemon(
-            1,
-            'Pikachu',
-            [new Type('Electric', new Date('2023-01-01'), 1)],
-            new Date('2023-01-01'),
-        );
+  it('/api/v1/pokemons (POST) - 409 Conflict if pokemon already exists', async () => {
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type('Electric', new Date('2023-01-01'), 1)],
+      new Date('2023-01-01'),
+    );
 
-        await repo.save(existingPokemon);
+    await repo.save(existingPokemon);
 
-        const dto: CreatePokemonDto = {
-            id: 1,
-            name: 'Pikachu',
-            types: ['Electric'],
-        };
+    const dto: CreatePokemonDto = {
+      id: 1,
+      name: 'Pikachu',
+      types: ['Electric'],
+    };
 
-        return request(app.getHttpServer())
-            .post('/api/v1/pokemons')
-            .send(dto)
-            .expect(409)
-            .expect((res) => {
-                expect(res.body.statusCode).toBe(409);
-                expect(res.body.message).toContain('already exists');
-            });
-    });
+    return request(app.getHttpServer())
+      .post('/api/v1/pokemons')
+      .send(dto)
+      .expect(409)
+      .expect((res) => {
+        expect(res.body.statusCode).toBe(409);
+        expect(res.body.message).toContain('already exists');
+      });
+  });
 
-    it('/api/v1/pokemons (POST) - 400 Bad Request if validation logic fails', async () => {
-        const dto: CreatePokemonDto = {
-            id: -1,
-            name: 'Pikachu',
-            types: ['Electric'],
-        };
+  it('/api/v1/pokemons (POST) - 400 Bad Request if validation logic fails', async () => {
+    const dto: CreatePokemonDto = {
+      id: -1,
+      name: 'Pikachu',
+      types: ['Electric'],
+    };
 
-        return request(app.getHttpServer())
-            .post('/api/v1/pokemons')
-            .send(dto)
-            .expect(400)
-            .expect((res) => {
-                expect(res.body.statusCode).toBe(400);
-            });
-    });
+    return request(app.getHttpServer())
+      .post('/api/v1/pokemons')
+      .send(dto)
+      .expect(400)
+      .expect((res) => {
+        expect(res.body.statusCode).toBe(400);
+      });
+  });
 
-    it('/api/v1/pokemons (GET) - supports filters and pagination', async () => {
-        await repo.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
-        await repo.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
-        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
+  it('/api/v1/pokemons (GET) - supports filters and pagination', async () => {
+    await repo.save(
+      new Pokemon(
+        1,
+        'Pikachu',
+        [new Type('Electric', new Date('2023-01-01'), 1)],
+        new Date('2023-01-01'),
+      ),
+    );
+    await repo.save(
+      new Pokemon(
+        2,
+        'Raichu',
+        [new Type('Electric', new Date('2023-01-02'), 2)],
+        new Date('2023-01-02'),
+      ),
+    );
+    await repo.save(
+      new Pokemon(
+        3,
+        'Bulbasaur',
+        [new Type('Grass', new Date('2023-01-03'), 3)],
+        new Date('2023-01-03'),
+      ),
+    );
 
-        return request(app.getHttpServer())
-            .get('/api/v1/pokemons')
-            .query({ type: 'Electric', name: 'chu', page: 1, limit: 1, sortBy: 'name', sortOrder: 'asc' })
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.data).toHaveLength(1);
-                expect(res.body.data[0].name).toBe('Pikachu');
-                expect(res.body.pagination).toEqual({
-                    page: 1,
-                    limit: 1,
-                    totalCount: 2,
-                    totalPages: 2,
-                });
-            });
-    });
+    return request(app.getHttpServer())
+      .get('/api/v1/pokemons')
+      .query({
+        type: 'Electric',
+        name: 'chu',
+        page: 1,
+        limit: 1,
+        sortBy: 'name',
+        sortOrder: 'asc',
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data).toHaveLength(1);
+        expect(res.body.data[0].name).toBe('Pikachu');
+        expect(res.body.pagination).toEqual({
+          page: 1,
+          limit: 1,
+          totalCount: 2,
+          totalPages: 2,
+        });
+      });
+  });
 
-    it('/api/v1/pokemons (GET) - supports sort by id desc', async () => {
-        await repo.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
-        await repo.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
-        await repo.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
+  it('/api/v1/pokemons (GET) - supports sort by id desc', async () => {
+    await repo.save(
+      new Pokemon(
+        1,
+        'Pikachu',
+        [new Type('Electric', new Date('2023-01-01'), 1)],
+        new Date('2023-01-01'),
+      ),
+    );
+    await repo.save(
+      new Pokemon(
+        2,
+        'Raichu',
+        [new Type('Electric', new Date('2023-01-02'), 2)],
+        new Date('2023-01-02'),
+      ),
+    );
+    await repo.save(
+      new Pokemon(
+        3,
+        'Bulbasaur',
+        [new Type('Grass', new Date('2023-01-03'), 3)],
+        new Date('2023-01-03'),
+      ),
+    );
 
-        return request(app.getHttpServer())
-            .get('/api/v1/pokemons')
-            .query({ sortBy: 'id', sortOrder: 'desc' })
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.data).toHaveLength(3);
-                expect(res.body.data[0].id).toBe(3);
-            });
-    });
+    return request(app.getHttpServer())
+      .get('/api/v1/pokemons')
+      .query({ sortBy: 'id', sortOrder: 'desc' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data).toHaveLength(3);
+        expect(res.body.data[0].id).toBe(3);
+      });
+  });
 
-    it('/api/v1/pokemons (POST) - should create pokemon with multiple types', async () => {
-        const dto: CreatePokemonDto = {
-            id: 6,
-            name: 'Charizard',
-            types: ['Fire', 'Flying'],
-        };
+  it('/api/v1/pokemons (POST) - should create pokemon with multiple types', async () => {
+    const dto: CreatePokemonDto = {
+      id: 6,
+      name: 'Charizard',
+      types: ['Fire', 'Flying'],
+    };
 
-        return request(app.getHttpServer())
-            .post('/api/v1/pokemons')
-            .send(dto)
-            .expect(201)
-            .expect((res) => {
-                expect(res.body.id).toBe(6);
-                expect(res.body.name).toBe('Charizard');
-                expect(res.body.types).toHaveLength(2);
-                expect(res.body.types[0].name).toBe('Fire');
-                expect(res.body.types[1].name).toBe('Flying');
-            });
-    });
+    return request(app.getHttpServer())
+      .post('/api/v1/pokemons')
+      .send(dto)
+      .expect(201)
+      .expect((res) => {
+        expect(res.body.id).toBe(6);
+        expect(res.body.name).toBe('Charizard');
+        expect(res.body.types).toHaveLength(2);
+        expect(res.body.types[0].name).toBe('Fire');
+        expect(res.body.types[1].name).toBe('Flying');
+      });
+  });
 
-    it('/api/v1/pokemons/:id (PATCH) - should update pokemon types successfully', async () => {
-        const existingPokemon = new Pokemon(
-            1,
-            'Pikachu',
-            [new Type('Electric', new Date('2023-01-01'), 1)],
-            new Date('2023-01-01'),
-        );
-        await repo.save(existingPokemon);
+  it('/api/v1/pokemons/:id (PATCH) - should update pokemon types successfully', async () => {
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type('Electric', new Date('2023-01-01'), 1)],
+      new Date('2023-01-01'),
+    );
+    await repo.save(existingPokemon);
 
-        const updateDto = {
-            types: ['Electric', 'Steel'],
-        };
+    const updateDto = {
+      types: ['Electric', 'Steel'],
+    };
 
-        return request(app.getHttpServer())
-            .patch('/api/v1/pokemons/1')
-            .send(updateDto)
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.id).toBe(1);
-                expect(res.body.name).toBe('Pikachu');
-                expect(res.body.types).toHaveLength(2);
-                expect(res.body.types[0].name).toBe('Electric');
-                expect(res.body.types[1].name).toBe('Steel');
-            });
-    });
+    return request(app.getHttpServer())
+      .patch('/api/v1/pokemons/1')
+      .send(updateDto)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.id).toBe(1);
+        expect(res.body.name).toBe('Pikachu');
+        expect(res.body.types).toHaveLength(2);
+        expect(res.body.types[0].name).toBe('Electric');
+        expect(res.body.types[1].name).toBe('Steel');
+      });
+  });
 
-    it('/api/v1/pokemons/:id (PATCH) - should replace all types', async () => {
-        const existingPokemon = new Pokemon(
-            6,
-            'Charizard',
-            [new Type('Fire', new Date('2023-01-01'), 1), new Type('Flying', new Date('2023-01-01'), 2)],
-            new Date('2023-01-01'),
-        );
-        await repo.save(existingPokemon);
+  it('/api/v1/pokemons/:id (PATCH) - should replace all types', async () => {
+    const existingPokemon = new Pokemon(
+      6,
+      'Charizard',
+      [
+        new Type('Fire', new Date('2023-01-01'), 1),
+        new Type('Flying', new Date('2023-01-01'), 2),
+      ],
+      new Date('2023-01-01'),
+    );
+    await repo.save(existingPokemon);
 
-        const updateDto = {
-            types: ['Dragon'],
-        };
+    const updateDto = {
+      types: ['Dragon'],
+    };
 
-        return request(app.getHttpServer())
-            .patch('/api/v1/pokemons/6')
-            .send(updateDto)
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.id).toBe(6);
-                expect(res.body.name).toBe('Charizard');
-                expect(res.body.types).toHaveLength(1);
-                expect(res.body.types[0].name).toBe('Dragon');
-            });
-    });
+    return request(app.getHttpServer())
+      .patch('/api/v1/pokemons/6')
+      .send(updateDto)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.id).toBe(6);
+        expect(res.body.name).toBe('Charizard');
+        expect(res.body.types).toHaveLength(1);
+        expect(res.body.types[0].name).toBe('Dragon');
+      });
+  });
 });

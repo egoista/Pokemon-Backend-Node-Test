@@ -37,8 +37,8 @@ describe('PokemonResolver (e2e)', () => {
   it('should create a pokemon', async () => {
     // Arrange
     const id = 101;
-    const name = "Mewtwo";
-    const types = ["Psychic"];
+    const name = 'Mewtwo';
+    const types = ['Psychic'];
 
     const mutation = `
       mutation {
@@ -82,11 +82,13 @@ describe('PokemonResolver (e2e)', () => {
   it('should return PokemonAlreadyExistsError if pokemon already exists', async () => {
     // Arrange
     const id = 102;
-    const name = "Pikachu";
-    const types = ["Electric"];
+    const name = 'Pikachu';
+    const types = ['Electric'];
 
     // Seed fake DB
-    await fakeRepository.save(new Pokemon(999, name, [new Type('Electric', new Date(), 1)]));
+    await fakeRepository.save(
+      new Pokemon(999, name, [new Type('Electric', new Date(), 1)]),
+    );
 
     const mutation = `
       mutation {
@@ -115,9 +117,30 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should list pokemons with filters and pagination', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
+    await fakeRepository.save(
+      new Pokemon(
+        1,
+        'Pikachu',
+        [new Type('Electric', new Date('2023-01-01'), 1)],
+        new Date('2023-01-01'),
+      ),
+    );
+    await fakeRepository.save(
+      new Pokemon(
+        2,
+        'Raichu',
+        [new Type('Electric', new Date('2023-01-02'), 2)],
+        new Date('2023-01-02'),
+      ),
+    );
+    await fakeRepository.save(
+      new Pokemon(
+        3,
+        'Bulbasaur',
+        [new Type('Grass', new Date('2023-01-03'), 3)],
+        new Date('2023-01-03'),
+      ),
+    );
 
     const query = `
       query {
@@ -161,9 +184,30 @@ describe('PokemonResolver (e2e)', () => {
   });
 
   it('should support sorting by created_at desc', async () => {
-    await fakeRepository.save(new Pokemon(1, 'Pikachu', [new Type('Electric', new Date('2023-01-01'), 1)], new Date('2023-01-01')));
-    await fakeRepository.save(new Pokemon(2, 'Raichu', [new Type('Electric', new Date('2023-01-02'), 2)], new Date('2023-01-02')));
-    await fakeRepository.save(new Pokemon(3, 'Bulbasaur', [new Type('Grass', new Date('2023-01-03'), 3)], new Date('2023-01-03')));
+    await fakeRepository.save(
+      new Pokemon(
+        1,
+        'Pikachu',
+        [new Type('Electric', new Date('2023-01-01'), 1)],
+        new Date('2023-01-01'),
+      ),
+    );
+    await fakeRepository.save(
+      new Pokemon(
+        2,
+        'Raichu',
+        [new Type('Electric', new Date('2023-01-02'), 2)],
+        new Date('2023-01-02'),
+      ),
+    );
+    await fakeRepository.save(
+      new Pokemon(
+        3,
+        'Bulbasaur',
+        [new Type('Grass', new Date('2023-01-03'), 3)],
+        new Date('2023-01-03'),
+      ),
+    );
 
     const query = `
       query {
@@ -191,8 +235,8 @@ describe('PokemonResolver (e2e)', () => {
   it('should create a pokemon with multiple types', async () => {
     // Arrange
     const id = 6;
-    const name = "Charizard";
-    const types = ["Fire", "Flying"];
+    const name = 'Charizard';
+    const types = ['Fire', 'Flying'];
 
     const mutation = `
       mutation {
@@ -268,7 +312,10 @@ describe('PokemonResolver (e2e)', () => {
     const existingPokemon = new Pokemon(
       6,
       'Charizard',
-      [new Type('Fire', new Date('2023-01-01'), 1), new Type('Flying', new Date('2023-01-01'), 2)],
+      [
+        new Type('Fire', new Date('2023-01-01'), 1),
+        new Type('Flying', new Date('2023-01-01'), 2),
+      ],
       new Date('2023-01-01'),
     );
     await fakeRepository.save(existingPokemon);

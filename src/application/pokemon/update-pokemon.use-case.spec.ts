@@ -1,176 +1,245 @@
 import { UpdatePokemonUseCase } from './update-pokemon.use-case';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
-import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
+import {
+  PokemonAlreadyExistsError,
+  PokemonNotFoundError,
+} from '../../domain/pokemon/pokemon.errors';
 import { Type } from '../../domain/type.entity';
 
 import { ValidationError } from '../shared/errors/application.errors';
 
 describe('UpdatePokemonUseCase', () => {
-    let useCase: UpdatePokemonUseCase;
-    let pokemonRepository: PokemonRepository;
+  let useCase: UpdatePokemonUseCase;
+  let pokemonRepository: PokemonRepository;
 
-    beforeEach(() => {
-        pokemonRepository = {
-            findById: jest.fn(),
-            findByName: jest.fn(),
-            findAll: jest.fn(),
-            findWithFilters: jest.fn(),
-            save: jest.fn(),
-            update: jest.fn(),
-            upsert: jest.fn(),
-            delete: jest.fn(),
-        };
-        useCase = new UpdatePokemonUseCase(pokemonRepository);
-    });
+  beforeEach(() => {
+    pokemonRepository = {
+      findById: jest.fn(),
+      findByName: jest.fn(),
+      findAll: jest.fn(),
+      findWithFilters: jest.fn(),
+      save: jest.fn(),
+      update: jest.fn(),
+      upsert: jest.fn(),
+      delete: jest.fn(),
+    };
+    useCase = new UpdatePokemonUseCase(pokemonRepository);
+  });
 
-    it('should update name and type successfully', async () => {
-        const input = { id: 1, name: 'Raichu', types: ['Electric'] };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
-        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
+  it('should update name and type successfully', async () => {
+    const input = { id: 1, name: 'Raichu', types: ['Electric'] };
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type('Electric', new Date(), 1)],
+      new Date(),
+    );
+    const updatedPokemon = new Pokemon(
+      1,
+      'Raichu',
+      [new Type('Electric', new Date(), 1)],
+      existingPokemon.createdAt,
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
-        (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
+    (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        const result = await useCase.execute(input);
+    const result = await useCase.execute(input);
 
-        expect(pokemonRepository.findById).toHaveBeenCalledWith(1);
-        expect(pokemonRepository.findByName).toHaveBeenCalledWith('Raichu');
-        expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
-        expect(result.name).toBe('Raichu');
-    });
+    expect(pokemonRepository.findById).toHaveBeenCalledWith(1);
+    expect(pokemonRepository.findByName).toHaveBeenCalledWith('Raichu');
+    expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
+    expect(result.name).toBe('Raichu');
+  });
 
-    it('should update only name successfully', async () => {
-        const input = { id: 1, name: 'Raichu' };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
-        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
+  it('should update only name successfully', async () => {
+    const input = { id: 1, name: 'Raichu' };
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type('Electric', new Date(), 1)],
+      new Date(),
+    );
+    const updatedPokemon = new Pokemon(
+      1,
+      'Raichu',
+      [new Type('Electric', new Date(), 1)],
+      existingPokemon.createdAt,
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
-        (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
+    (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        const result = await useCase.execute(input);
+    const result = await useCase.execute(input);
 
-        expect(result.name).toBe('Raichu');
-        expect(result.types[0].name).toBe('Electric');
-    });
+    expect(result.name).toBe('Raichu');
+    expect(result.types[0].name).toBe('Electric');
+  });
 
-    it('should throw PokemonNotFoundError when pokemon does not exist', async () => {
-        const input = { id: 999, name: 'Raichu' };
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(null);
+  it('should throw PokemonNotFoundError when pokemon does not exist', async () => {
+    const input = { id: 999, name: 'Raichu' };
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(null);
 
-        await expect(useCase.execute(input)).rejects.toThrow(PokemonNotFoundError);
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(PokemonNotFoundError);
+  });
 
-    it('should throw PokemonAlreadyExistsError when new name is taken', async () => {
-        const input = { id: 1, name: 'Raichu' };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
-        const anotherPokemon = new Pokemon(2, 'Raichu', [new Type('Electric', new Date(), 2)], new Date());
+  it('should throw PokemonAlreadyExistsError when new name is taken', async () => {
+    const input = { id: 1, name: 'Raichu' };
+    const existingPokemon = new Pokemon(
+      1,
+      'Pikachu',
+      [new Type('Electric', new Date(), 1)],
+      new Date(),
+    );
+    const anotherPokemon = new Pokemon(
+      2,
+      'Raichu',
+      [new Type('Electric', new Date(), 2)],
+      new Date(),
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.findByName as jest.Mock).mockResolvedValue(anotherPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.findByName as jest.Mock).mockResolvedValue(
+      anotherPokemon,
+    );
 
-        await expect(useCase.execute(input)).rejects.toThrow(PokemonAlreadyExistsError);
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(
+      PokemonAlreadyExistsError,
+    );
+  });
 
-    it('should throw ValidationError when input is missing', async () => {
-        await expect(
-            useCase.execute(undefined as unknown as any)
-        ).rejects.toThrow(ValidationError);
-    });
+  it('should throw ValidationError when input is missing', async () => {
+    await expect(useCase.execute(undefined as unknown as any)).rejects.toThrow(
+      ValidationError,
+    );
+  });
 
-    it('should throw ValidationError when id is not a number', async () => {
-        const input = { id: Number('nope'), name: 'Raichu' };
+  it('should throw ValidationError when id is not a number', async () => {
+    const input = { id: Number('nope'), name: 'Raichu' };
 
-        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
-        expect(pokemonRepository.findById).not.toHaveBeenCalled();
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    expect(pokemonRepository.findById).not.toHaveBeenCalled();
+  });
 
-    it('should throw ValidationError when name is not a string', async () => {
-        const input = { id: 1, name: 123 as unknown as string };
+  it('should throw ValidationError when name is not a string', async () => {
+    const input = { id: 1, name: 123 as unknown as string };
 
-        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
-        expect(pokemonRepository.findById).not.toHaveBeenCalled();
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    expect(pokemonRepository.findById).not.toHaveBeenCalled();
+  });
 
-    it('should throw ValidationError when types is not an array', async () => {
-        const input = { id: 1, types: 'Electric' as unknown as string[] };
+  it('should throw ValidationError when types is not an array', async () => {
+    const input = { id: 1, types: 'Electric' as unknown as string[] };
 
-        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
-        expect(pokemonRepository.findById).not.toHaveBeenCalled();
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    expect(pokemonRepository.findById).not.toHaveBeenCalled();
+  });
 
-    it('should throw ValidationError when types contains non-string values', async () => {
-        const input = { id: 1, types: ['Electric', 123 as unknown as string] };
+  it('should throw ValidationError when types contains non-string values', async () => {
+    const input = { id: 1, types: ['Electric', 123 as unknown as string] };
 
-        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
-        expect(pokemonRepository.findById).not.toHaveBeenCalled();
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    expect(pokemonRepository.findById).not.toHaveBeenCalled();
+  });
 
-    it('should throw ValidationError when no update fields are provided', async () => {
-        const input = { id: 1 };
+  it('should throw ValidationError when no update fields are provided', async () => {
+    const input = { id: 1 };
 
-        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
-        expect(pokemonRepository.findById).not.toHaveBeenCalled();
-    });
+    await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+    expect(pokemonRepository.findById).not.toHaveBeenCalled();
+  });
 
-    it('should update pokemon with multiple types', async () => {
-        const input = { id: 1, types: ['Fire', 'Flying'] };
-        const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
-        const updatedPokemon = new Pokemon(
-            1,
-            'Charizard',
-            [new Type('Fire', new Date(), 1), new Type('Flying', new Date(), 2)],
-            existingPokemon.createdAt,
-        );
+  it('should update pokemon with multiple types', async () => {
+    const input = { id: 1, types: ['Fire', 'Flying'] };
+    const existingPokemon = new Pokemon(
+      1,
+      'Charizard',
+      [new Type('Fire', new Date(), 1)],
+      new Date(),
+    );
+    const updatedPokemon = new Pokemon(
+      1,
+      'Charizard',
+      [new Type('Fire', new Date(), 1), new Type('Flying', new Date(), 2)],
+      existingPokemon.createdAt,
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        const result = await useCase.execute(input);
+    await useCase.execute(input);
 
-        expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
-        const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
-        expect(updated.types).toHaveLength(2);
-        expect(updated.types[0].name).toBe('Fire');
-        expect(updated.types[1].name).toBe('Flying');
-    });
+    expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
+    const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
+    expect(updated.types).toHaveLength(2);
+    expect(updated.types[0].name).toBe('Fire');
+    expect(updated.types[1].name).toBe('Flying');
+  });
 
-    it('should replace all types when updating', async () => {
-        const input = { id: 1, types: ['Water'] };
-        const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
-        const updatedPokemon = new Pokemon(1, 'Charizard', [new Type('Water', new Date(), 2)], existingPokemon.createdAt);
+  it('should replace all types when updating', async () => {
+    const input = { id: 1, types: ['Water'] };
+    const existingPokemon = new Pokemon(
+      1,
+      'Charizard',
+      [new Type('Fire', new Date(), 1)],
+      new Date(),
+    );
+    const updatedPokemon = new Pokemon(
+      1,
+      'Charizard',
+      [new Type('Water', new Date(), 2)],
+      existingPokemon.createdAt,
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        const result = await useCase.execute(input);
+    const result = await useCase.execute(input);
 
-        const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
-        expect(updated.types).toHaveLength(1);
-        expect(updated.types[0].name).toBe('Water');
-        expect(result.types[0].name).toBe('Water');
-    });
+    const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
+    expect(updated.types).toHaveLength(1);
+    expect(updated.types[0].name).toBe('Water');
+    expect(result.types[0].name).toBe('Water');
+  });
 
-    it('should update only types without changing name', async () => {
-        const input = { id: 1, types: ['Electric', 'Steel'] };
-        const existingPokemon = new Pokemon(1, 'Magnezone', [new Type('Electric', new Date(), 1)], new Date());
-        const updatedPokemon = new Pokemon(
-            1,
-            'Magnezone',
-            [new Type('Electric', new Date(), 1), new Type('Steel', new Date(), 2)],
-            existingPokemon.createdAt,
-        );
+  it('should update only types without changing name', async () => {
+    const input = { id: 1, types: ['Electric', 'Steel'] };
+    const existingPokemon = new Pokemon(
+      1,
+      'Magnezone',
+      [new Type('Electric', new Date(), 1)],
+      new Date(),
+    );
+    const updatedPokemon = new Pokemon(
+      1,
+      'Magnezone',
+      [new Type('Electric', new Date(), 1), new Type('Steel', new Date(), 2)],
+      existingPokemon.createdAt,
+    );
 
-        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
-        (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
+    (pokemonRepository.findById as jest.Mock).mockResolvedValue(
+      existingPokemon,
+    );
+    (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        const result = await useCase.execute(input);
+    const result = await useCase.execute(input);
 
-        expect(result.name).toBe('Magnezone');
-        expect(result.types).toHaveLength(2);
-        expect(result.types[0].name).toBe('Electric');
-        expect(result.types[1].name).toBe('Steel');
-    });
+    expect(result.name).toBe('Magnezone');
+    expect(result.types).toHaveLength(2);
+    expect(result.types[0].name).toBe('Electric');
+    expect(result.types[1].name).toBe('Steel');
+  });
 });

@@ -4,11 +4,11 @@ import { PokemonPresenter } from './pokemon.presenter';
 // ARCH: Presentation mapper for list responses.
 // ADR-002: Clean Architecture.
 export class PokemonListPresenter {
-    data: PokemonPresenter[];
-    pagination: ListPokemonsResult['pagination'];
+  data: PokemonPresenter[];
+  pagination: ListPokemonsResult['pagination'];
 
-    constructor(result: ListPokemonsResult) {
-        this.data = result.data.map((pokemon) => new PokemonPresenter(pokemon));
-        this.pagination = result.pagination;
-    }
+  constructor(result: ListPokemonsResult) {
+    this.data = result.data.map((pokemon) => new PokemonPresenter(pokemon));
+    this.pagination = result.pagination;
+  }
 }

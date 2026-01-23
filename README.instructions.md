@@ -38,9 +38,14 @@ $ yarn start:dev
 ## Test
 
 ```bash
-$ npm run test
+$ npm run test # default suite (excludes e2e)
 or
 $ yarn test
+
+# E2E suite (optional)
+$ npm run test:e2e
+or
+$ yarn test:e2e
 ```
 
 ## Architecture Comments
