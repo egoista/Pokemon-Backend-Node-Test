@@ -17,6 +17,7 @@ import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.inter
 import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
 import { TypeEntity } from '../../infrastructure/pokemon/entities/type.entity.typeorm'; // Check path
 import { PokemonGraphQLExceptionFilter } from '../../infrastructure/pokemon/graphql/pokemon-graphql-exception.filter';
+import { NestLoggerAdapter } from '../../infrastructure/common/logger/nest-logger.adapter';
 
 const POKEMON_REPOSITORY = 'POKEMON_REPOSITORY';
 const POKE_API_CLIENT = 'POKE_API_CLIENT';
@@ -46,42 +47,61 @@ const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
         {
             provide: CreatePokemonUseCase,
             useFactory: (repo: PokemonRepository) => {
-                return new CreatePokemonUseCase(repo);
+                return new CreatePokemonUseCase(
+                    repo,
+                    new NestLoggerAdapter(CreatePokemonUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY],
         },
         {
             provide: GetPokemonByIdUseCase,
             useFactory: (repo: PokemonRepository) => {
-                return new GetPokemonByIdUseCase(repo);
+                return new GetPokemonByIdUseCase(
+                    repo,
+                    new NestLoggerAdapter(GetPokemonByIdUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY],
         },
         {
             provide: ListPokemonsUseCase,
             useFactory: (repo: PokemonRepository) => {
-                return new ListPokemonsUseCase(repo);
+                return new ListPokemonsUseCase(
+                    repo,
+                    new NestLoggerAdapter(ListPokemonsUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY],
         },
         {
             provide: UpdatePokemonUseCase,
             useFactory: (repo: PokemonRepository) => {
-                return new UpdatePokemonUseCase(repo);
+                return new UpdatePokemonUseCase(
+                    repo,
+                    new NestLoggerAdapter(UpdatePokemonUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY],
         },
         {
             provide: DeletePokemonUseCase,
             useFactory: (repo: PokemonRepository) => {
-                return new DeletePokemonUseCase(repo);
+                return new DeletePokemonUseCase(
+                    repo,
+                    new NestLoggerAdapter(DeletePokemonUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY],
         },
         {
             provide: ImportPokemonByIdUseCase,
             useFactory: (repo: PokemonRepository, client: PokeApiClient) => {
-                return new ImportPokemonByIdUseCase(repo, client);
+                return new ImportPokemonByIdUseCase(
+                    repo,
+                    client,
+                    new NestLoggerAdapter(ImportPokemonByIdUseCase.name),
+                );
             },
             inject: [POKEMON_REPOSITORY, POKE_API_CLIENT],
         },

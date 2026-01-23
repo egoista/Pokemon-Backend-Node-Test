@@ -22,3 +22,4 @@
 | [018](./018-architecture-comment-strategy.md) | Architecture Comment Strategy | Accepted |
 | [019](./019-caching-strategy.md) | Caching Strategy | Accepted |
 | [020](./020-adopt-openapi.md) | Adopt OpenAPI (Swagger) | Accepted |
+| [021](./021-input-validation-and-structured-logging.md) | Input Validation and Structured Logging | Accepted |

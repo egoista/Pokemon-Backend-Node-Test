@@ -1,8 +1,9 @@
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
-import { PokeApiClient } from './ports/poke-api.client.interface';
+import { PokeApiClient, PokeApiPokemonDto } from './ports/poke-api.client.interface';
 import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
+import { AppLogger, NullLogger } from '../shared/logger/logger.interface';
 
 export interface ImportPokemonInput {
     id: number;
@@ -11,7 +12,8 @@ export interface ImportPokemonInput {
 export class ImportPokemonByIdUseCase {
     constructor(
         private readonly pokemonRepository: PokemonRepository,
-        private readonly pokeApiClient: PokeApiClient
+        private readonly pokeApiClient: PokeApiClient,
+        private readonly logger: AppLogger = new NullLogger(),
     ) { }
 
     async execute(input: ImportPokemonInput): Promise<Pokemon> {
@@ -19,7 +21,16 @@ export class ImportPokemonByIdUseCase {
         const { id } = input;
 
         // 1. Fetch from external API
-        const pokeApiDto = await this.pokeApiClient.getPokemonById(id);
+        let pokeApiDto: PokeApiPokemonDto;
+        try {
+            pokeApiDto = await this.pokeApiClient.getPokemonById(id);
+        } catch (error) {
+            this.logger.error('pokemon.import_failed', {
+                pokemonId: id,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            throw error;
+        }
 
         // 2. Map to domain entities
         const types = pokeApiDto.types.map(
@@ -30,7 +41,13 @@ export class ImportPokemonByIdUseCase {
         const pokemon = new Pokemon(pokeApiDto.id, pokeApiDto.name, types);
 
         // 3. Upsert to repository
-        return this.pokemonRepository.upsert(pokemon);
+        const savedPokemon = await this.pokemonRepository.upsert(pokemon);
+        this.logger.info('pokemon.imported', {
+            pokemonId: savedPokemon.id,
+            name: savedPokemon.name,
+            typesCount: savedPokemon.types.length,
+        });
+        return savedPokemon;
     }
 
     private validateInput(input: ImportPokemonInput): void {
