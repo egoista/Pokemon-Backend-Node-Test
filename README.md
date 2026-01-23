@@ -22,8 +22,7 @@ npm run start:dev
 ### 3. Tests
 
 ```bash
-npm run test        # All tests
-npm run test:unit   # Unit tests
+npm run test        # Default suite (excludes e2e)
 npm run test:e2e    # E2E tests
 ```
 

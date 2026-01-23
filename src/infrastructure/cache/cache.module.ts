@@ -4,12 +4,12 @@ import { CacheService } from '../../domain/adapters/cache.interface';
 
 @Global()
 @Module({
-    providers: [
-        {
-            provide: CacheService,
-            useClass: InMemoryCacheService,
-        },
-    ],
-    exports: [CacheService],
+  providers: [
+    {
+      provide: CacheService,
+      useClass: InMemoryCacheService,
+    },
+  ],
+  exports: [CacheService],
 })
-export class CacheModule { }
+export class CacheModule {}
