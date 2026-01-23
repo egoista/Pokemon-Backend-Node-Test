@@ -25,7 +25,6 @@ describe('UpdatePokemonUseCase', () => {
     });
 
     it('should update name and type successfully', async () => {
-        // Arrange
         const input = { id: 1, name: 'Raichu', types: ['Electric'] };
         const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
@@ -34,10 +33,8 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        // Act
         const result = await useCase.execute(input);
 
-        // Assert
         expect(pokemonRepository.findById).toHaveBeenCalledWith(1);
         expect(pokemonRepository.findByName).toHaveBeenCalledWith('Raichu');
         expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
@@ -45,7 +42,6 @@ describe('UpdatePokemonUseCase', () => {
     });
 
     it('should update only name successfully', async () => {
-        // Arrange
         const input = { id: 1, name: 'Raichu' };
         const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
@@ -54,25 +50,20 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        // Act
         const result = await useCase.execute(input);
 
-        // Assert
         expect(result.name).toBe('Raichu');
         expect(result.types[0].name).toBe('Electric');
     });
 
     it('should throw PokemonNotFoundError when pokemon does not exist', async () => {
-        // Arrange
         const input = { id: 999, name: 'Raichu' };
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(null);
 
-        // Act & Assert
         await expect(useCase.execute(input)).rejects.toThrow(PokemonNotFoundError);
     });
 
     it('should throw PokemonAlreadyExistsError when new name is taken', async () => {
-        // Arrange
         const input = { id: 1, name: 'Raichu' };
         const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
         const anotherPokemon = new Pokemon(2, 'Raichu', [new Type('Electric', new Date(), 2)], new Date());
@@ -80,21 +71,17 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(anotherPokemon);
 
-        // Act & Assert
         await expect(useCase.execute(input)).rejects.toThrow(PokemonAlreadyExistsError);
     });
 
     it('should throw ValidationError when no update fields are provided', async () => {
-        // Arrange
         const input = { id: 1 };
 
-        // Act & Assert
         await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
         expect(pokemonRepository.findById).not.toHaveBeenCalled();
     });
 
     it('should update pokemon with multiple types', async () => {
-        // Arrange
         const input = { id: 1, types: ['Fire', 'Flying'] };
         const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(
@@ -107,10 +94,8 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        // Act
         const result = await useCase.execute(input);
 
-        // Assert
         expect(pokemonRepository.update).toHaveBeenCalledWith(expect.any(Pokemon));
         const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
         expect(updated.types).toHaveLength(2);
@@ -119,7 +104,6 @@ describe('UpdatePokemonUseCase', () => {
     });
 
     it('should replace all types when updating', async () => {
-        // Arrange
         const input = { id: 1, types: ['Water'] };
         const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(1, 'Charizard', [new Type('Water', new Date(), 2)], existingPokemon.createdAt);
@@ -127,10 +111,8 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        // Act
         const result = await useCase.execute(input);
 
-        // Assert
         const updated = (pokemonRepository.update as jest.Mock).mock.calls[0][0];
         expect(updated.types).toHaveLength(1);
         expect(updated.types[0].name).toBe('Water');
@@ -138,7 +120,6 @@ describe('UpdatePokemonUseCase', () => {
     });
 
     it('should update only types without changing name', async () => {
-        // Arrange
         const input = { id: 1, types: ['Electric', 'Steel'] };
         const existingPokemon = new Pokemon(1, 'Magnezone', [new Type('Electric', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(
@@ -151,11 +132,9 @@ describe('UpdatePokemonUseCase', () => {
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
 
-        // Act
         const result = await useCase.execute(input);
 
-        // Assert
-        expect(result.name).toBe('Magnezone'); // Name unchanged
+        expect(result.name).toBe('Magnezone');
         expect(result.types).toHaveLength(2);
         expect(result.types[0].name).toBe('Electric');
         expect(result.types[1].name).toBe('Steel');

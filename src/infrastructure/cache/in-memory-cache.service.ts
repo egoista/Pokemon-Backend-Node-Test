@@ -2,12 +2,14 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { LRUCache } from 'lru-cache';
 import { CacheService } from '../../domain/adapters/cache.interface';
 
+// ARCH: In-memory cache adapter for the cache port.
+// ADR-019: Caching strategy.
 @Injectable()
 export class InMemoryCacheService implements CacheService, OnModuleDestroy {
     private cache: LRUCache<string, any>;
 
     constructor() {
-        const ttl = parseInt(process.env.CACHE_TTL ?? '300000', 10); // 5 minutes default
+        const ttl = parseInt(process.env.CACHE_TTL ?? '300000', 10);
         const max = parseInt(process.env.CACHE_MAX_ITEMS ?? '500', 10);
 
         this.cache = new LRUCache({
@@ -30,16 +32,9 @@ export class InMemoryCacheService implements CacheService, OnModuleDestroy {
     }
 
     async deletePattern(pattern: string): Promise<void> {
-        // Simple pattern matching (wildcard at end usually)
-        // lru-cache doesn't support glob patterns natively on keys iterator efficiently without walking.
-        // Spec mentions "pokemon:list:*"
-        // We will iterate and delete.
-
-        // Convert glob-like pattern to regex. 
-        // "pokemon:list:*" -> starts with "pokemon:list:"
+        // NOTE: lru-cache lacks pattern deletes, so we scan keys with a prefix-style regex.
         const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
 
-        // In lru-cache v7+, we can iterate over keys
         for (const key of this.cache.keys()) {
             if (regex.test(key)) {
                 this.cache.delete(key);

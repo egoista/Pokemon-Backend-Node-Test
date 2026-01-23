@@ -6,13 +6,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Required for proper IP extraction behind proxies (e.g. load balancers, rate limiting)
+  // SEC: Trust proxy for correct client IPs behind load balancers (rate limiting).
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.setGlobalPrefix('api', {
     exclude: ['graphql', 'health'],
   });
 
+  // ADR-008: REST API versioning via URI.
   app.enableVersioning({
     type: VersioningType.URI,
   });
@@ -20,7 +21,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, transformOptions: { enableImplicitConversion: true } }));
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Swagger Configuration
+  // ADR-020: Expose OpenAPI docs for REST consumers.
   const config = new DocumentBuilder()
     .setTitle('Pokemon API')
     .setDescription('The Pokemon API description')

@@ -11,6 +11,8 @@ import { CacheService } from '../../../domain/adapters/cache.interface';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 
+// ARCH: HTTP cache interceptor for REST endpoints.
+// ADR-019: Caching strategy.
 @Injectable()
 export class HttpCacheInterceptor implements NestInterceptor {
     constructor(
@@ -21,9 +23,9 @@ export class HttpCacheInterceptor implements NestInterceptor {
         context: ExecutionContext,
         next: CallHandler,
     ): Promise<Observable<any>> {
-        // Skip caching for GraphQL contexts (GraphQL has its own caching strategies)
         const type = context.getType<string>();
         if (type === 'graphql') {
+            // NOTE: GraphQL caching is handled separately.
             return next.handle();
         }
 
@@ -32,12 +34,10 @@ export class HttpCacheInterceptor implements NestInterceptor {
         const response = httpContext.getResponse<Response>();
         const method = request.method;
 
-        // Only cache GET requests
         if (method === 'GET') {
             return this.handleGetRequest(context, next, request, response);
         }
 
-        // Invalidate cache for mutations
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             return this.handleMutationRequest(context, next, request, response);
         }
@@ -53,18 +53,16 @@ export class HttpCacheInterceptor implements NestInterceptor {
     ): Promise<Observable<any>> {
         const key = this.generateKey(request);
 
-        // Check cache
         const cachedResponse = await this.cacheService.get<any>(key);
 
         if (cachedResponse) {
             response.header('X-Cache-Status', 'HIT');
-            response.header('Cache-Control', 'public, max-age=300'); // 5 mins
+            response.header('Cache-Control', 'public, max-age=300');
 
-            // ETag check
             const ifNoneMatch = request.headers['if-none-match'];
             if (ifNoneMatch === cachedResponse.etag) {
                 response.status(304);
-                return of(null); // Body is empty for 304
+                return of(null);
             }
 
             response.header('ETag', cachedResponse.etag);
@@ -75,7 +73,6 @@ export class HttpCacheInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             mergeMap(async (data) => {
-                // Generate ETag
                 const etag = this.generateETag(JSON.stringify(data));
                 response.header('ETag', etag);
                 response.header('Cache-Control', 'public, max-age=300');
@@ -99,14 +96,11 @@ export class HttpCacheInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             mergeMap(async (data) => {
-                // Invalidation Strategy
-                // If we are modifying Pokemons
                 if (request.url.includes('/pokemons')) {
-                    // 1. Invalidate all list queries
                     await this.cacheService.deletePattern('pokemon:list:*');
 
-                    // 2. Invalidate specific ID if applicable (Update/Delete)
-                    const id = request.params.id; // Assuming route structure /pokemons/:id
+                    // NOTE: Assumes REST routes use /pokemons/:id for detail keys.
+                    const id = request.params.id;
                     if (id) {
                         await this.cacheService.delete(`pokemon:get:id=${id}`);
                     }
@@ -120,8 +114,7 @@ export class HttpCacheInterceptor implements NestInterceptor {
         const isList = !request.params.id;
 
         if (isList) {
-            // Format: pokemon:list:type=fire&page=1...
-            // Sort query params for consistency
+            // NOTE: Sort query params to keep list cache keys stable.
             const keys = Object.keys(request.query).sort();
             if (keys.length === 0) {
                 return 'pokemon:list:all';
@@ -130,7 +123,6 @@ export class HttpCacheInterceptor implements NestInterceptor {
             const queryString = keys.map(k => `${k}=${request.query[k]}`).join('&');
             return `pokemon:list:${queryString}`;
         } else {
-            // Format: pokemon:get:id=25
             return `pokemon:get:id=${request.params.id}`;
         }
     }

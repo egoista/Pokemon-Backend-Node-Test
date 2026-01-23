@@ -20,9 +20,9 @@ import { HealthModule } from "./infrastructure/health/health.module";
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? "prisma";
 const useTypeOrm = pokemonRepositoryImpl === "typeorm";
 
-// ARCH: Application composition root; infrastructure is selected at runtime.
+// ARCH: Application composition root; selects infrastructure adapters at runtime.
 // ADR-006: Manual composition root. ADR-004: Multiple ORMs via repository abstraction.
-// NOTE: Use a single ORM per process to avoid double connections and duplicated schema sync.
+// NOTE: Use one ORM per process to avoid double connections and duplicated schema sync.
 const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID !== undefined;
 
 @Module({
@@ -55,6 +55,7 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
           path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
         },
       context: ({ req, res }) => ({ req, res }),
+      // SEC: Sanitize GraphQL errors to avoid leaking internals.
       formatError: (formattedError: GraphQLFormattedError) => ({
         message: formattedError.message,
       }),

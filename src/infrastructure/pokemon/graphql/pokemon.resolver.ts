@@ -1,4 +1,3 @@
-
 import { Resolver, Mutation, Query, Args, ResolveField } from '@nestjs/graphql';
 import { UseFilters } from '@nestjs/common';
 import { CreatePokemonUseCase } from '../../../application/pokemon/create-pokemon.use-case';
@@ -84,14 +83,13 @@ export class PokemonResolver {
             });
             return new PokemonPresenter(pokemon);
         } catch (error) {
-            // Preserve union type behavior for PokemonAlreadyExistsError
+            // NOTE: Preserve GraphQL union contract by returning error type for conflicts.
             if (error instanceof PokemonAlreadyExistsError) {
                 return {
                     __typename: 'PokemonAlreadyExistsError',
                     message: error.message,
                 };
             }
-            // Let the filter handle all other errors
             throw error;
         }
     }
@@ -109,7 +107,7 @@ export class PokemonResolver {
 
     @Mutation('deletePokemon')
     async delete(@Args('id') id: number) {
-        // Ensure ID is a number (GraphQL may pass it as string)
+        // NOTE: GraphQL IDs may arrive as strings; coerce for use case.
         await this.deletePokemonUseCase.execute(Number(id));
         return true;
     }

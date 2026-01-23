@@ -24,7 +24,7 @@ describe('ImportPokemonByIdUseCase', () => {
 
         pokeApiClient = {
             getPokemonById: jest.fn(),
-        } as any; // Mock partial implementation
+        } as any;
 
         useCase = new ImportPokemonByIdUseCase(pokemonRepository, pokeApiClient);
     });

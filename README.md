@@ -34,7 +34,7 @@ npm run test:e2e    # E2E tests
 ### Environment Variables
 
 | Variable | Description | Default |
-|String | String | String |
+| -------- | ----- | ----------- |
 | `POKEMON_REPOSITORY` | `prisma` or `typeorm` | `prisma` |
 | `POKEAPI_BASE_URL` | External API URL | `https://pokeapi.co/api/v2` |
 | `CACHE_TTL` | Cache time-to-live (ms) | `60000` |

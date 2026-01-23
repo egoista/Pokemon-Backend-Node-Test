@@ -37,7 +37,6 @@ describe('PokemonGraphQLExceptionFilter', () => {
             getArgByIndex: jest.fn(),
         } as unknown as ArgumentsHost;
 
-        // Mock GqlArgumentsHost.create
         jest.spyOn(GqlArgumentsHost, 'create').mockReturnValue(mockGqlHost);
     });
 

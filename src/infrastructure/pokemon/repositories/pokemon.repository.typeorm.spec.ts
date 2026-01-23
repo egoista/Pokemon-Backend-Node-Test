@@ -12,7 +12,6 @@ describe('PokemonRepositoryTypeORM', () => {
     let mockTypeRepository: jest.Mocked<Repository<TypeEntity>>;
 
     beforeEach(() => {
-        // Create mocks for TypeORM repositories
         mockPokemonRepository = {
             findOne: jest.fn(),
             find: jest.fn(),

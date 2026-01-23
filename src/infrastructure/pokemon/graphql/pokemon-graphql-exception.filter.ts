@@ -15,6 +15,7 @@ import { ValidationError } from '../../../application/shared/errors/application.
 
 // ARCH: Map domain errors to GraphQL errors at the boundary.
 // ADR-013: Error ownership. ADR-014: GraphQL error mapping via filters.
+// SEC: Strip exception metadata before returning to clients.
 @Catch(
     PokemonAlreadyExistsError,
     PokemonNotFoundError,
@@ -31,7 +32,6 @@ export class PokemonGraphQLExceptionFilter implements GqlExceptionFilter {
         if (exception instanceof GraphQLError) {
             return this.fromGraphQLError(exception);
         }
-        // Map domain errors to GraphQL errors with appropriate extensions
         if (exception instanceof PokemonAlreadyExistsError) {
             return this.buildError(exception.message, {
                 code: 'CONFLICT',
@@ -79,7 +79,6 @@ export class PokemonGraphQLExceptionFilter implements GqlExceptionFilter {
             });
         }
 
-        // Default to internal server error for unknown errors
         return this.buildError('Internal server error', {
             code: 'INTERNAL_SERVER_ERROR',
             statusCode: 500,

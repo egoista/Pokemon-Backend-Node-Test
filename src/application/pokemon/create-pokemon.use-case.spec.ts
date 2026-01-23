@@ -14,7 +14,6 @@ describe('CreatePokemonUseCase', () => {
     let pokemonRepository: PokemonRepository;
 
     beforeEach(() => {
-        // Criar mock do repositório
         pokemonRepository = {
             findById: jest.fn(),
             findByName: jest.fn(),
@@ -26,7 +25,6 @@ describe('CreatePokemonUseCase', () => {
             delete: jest.fn(),
         };
 
-        // Criar instância do use case com o mock
         useCase = new CreatePokemonUseCase(pokemonRepository);
     });
 
