@@ -1,7 +1,6 @@
 # Project Readme (Interview Test)
 
-This repository is a technical interview project that demonstrates Clean Architecture with
-REST and GraphQL adapters, plus multiple ORM implementations behind a repository abstraction.
+This repository is a technical interview project that demonstrates Clean Architecture with REST and GraphQL adapters, plus multiple ORM implementations behind a repository abstraction.
 
 ## Quick Start
 
@@ -23,7 +22,8 @@ npm run start:dev
 ### 3. Tests
 
 ```bash
-npm run test        # Unit tests
+npm run test        # All tests
+npm run test:unit   # Unit tests
 npm run test:e2e    # E2E tests
 ```
 
