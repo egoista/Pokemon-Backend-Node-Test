@@ -3,6 +3,7 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import { GraphQLFormattedError } from "graphql";
 import { PrismaModule } from "./infrastructure/prisma/prisma.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { PokemonModule } from "./main/pokemon/pokemon.module";
@@ -45,6 +46,8 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
       driver: ApolloDriver,
       typePaths: ["./**/*.graphql"],
       playground: false,
+      debug: true,
+      includeStacktraceInErrorResponses: false,
       plugins: isTestEnv ? [] : [ApolloServerPluginLandingPageLocalDefault()],
       definitions: isTestEnv
         ? undefined
@@ -52,6 +55,9 @@ const isTestEnv = process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID 
           path: join(process.cwd(), "src/infrastructure/graphql/generated/graphql.ts"),
         },
       context: ({ req, res }) => ({ req, res }),
+      formatError: (formattedError: GraphQLFormattedError) => ({
+        message: formattedError.message,
+      }),
     }),
     PokemonModule,
     ...(useTypeOrm

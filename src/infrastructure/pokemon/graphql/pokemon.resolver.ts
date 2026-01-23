@@ -10,6 +10,7 @@ import { CreatePokemonInput, UpdatePokemonInput } from '../../graphql/generated/
 import { PokemonAlreadyExistsError, PokemonNotFoundError } from '../../../domain/pokemon/pokemon.errors';
 import { PokemonPresenter } from '../presenters/pokemon.presenter';
 import { PokemonListPresenter } from '../presenters/pokemon-list.presenter';
+import { PokemonGraphQLExceptionFilter } from './pokemon-graphql-exception.filter';
 
 interface PokemonFilterInput {
     type?: string;
@@ -45,6 +46,7 @@ interface UpdatePokemonArgs {
 // ARCH: GraphQL adapter only; use cases remain transport-agnostic.
 // ADR-002: Clean Architecture. ADR-003: REST + GraphQL adapters. ADR-009: No GraphQL versioning.
 @Resolver('Pokemon')
+@UseFilters(PokemonGraphQLExceptionFilter)
 export class PokemonResolver {
     constructor(
         private readonly createPokemonUseCase: CreatePokemonUseCase,
@@ -82,60 +84,40 @@ export class PokemonResolver {
             });
             return new PokemonPresenter(pokemon);
         } catch (error) {
+            // Preserve union type behavior for PokemonAlreadyExistsError
             if (error instanceof PokemonAlreadyExistsError) {
                 return {
                     __typename: 'PokemonAlreadyExistsError',
                     message: error.message,
                 };
             }
+            // Let the filter handle all other errors
             throw error;
         }
     }
 
     @Mutation('updatePokemon')
     async update(@Args() args: UpdatePokemonArgs) {
-        try {
-            const input = args.input;
-            const pokemon = await this.updatePokemonUseCase.execute({
-                id: Number(input.id),
-                name: input.name,
-                types: input.types,
-            });
-            return new PokemonPresenter(pokemon);
-        } catch (error) {
-            if (error instanceof PokemonNotFoundError) {
-                throw error;
-            }
-            if (error instanceof PokemonAlreadyExistsError) {
-                throw error;
-            }
-            throw error;
-        }
+        const input = args.input;
+        const pokemon = await this.updatePokemonUseCase.execute({
+            id: Number(input.id),
+            name: input.name,
+            types: input.types,
+        });
+        return new PokemonPresenter(pokemon);
     }
 
     @Mutation('deletePokemon')
     async delete(@Args('id') id: number) {
-        try {
-            // Ensure ID is a number (GraphQL may pass it as string)
-            await this.deletePokemonUseCase.execute(Number(id));
-            return true;
-        } catch (error) {
-            if (error instanceof PokemonNotFoundError) {
-                throw error;
-            }
-            throw error;
-        }
+        // Ensure ID is a number (GraphQL may pass it as string)
+        await this.deletePokemonUseCase.execute(Number(id));
+        return true;
     }
 
     @Mutation('importPokemon')
     async importPokemon(@Args('id') id: number) {
-        try {
-            const pokemon = await this.importPokemonByIdUseCase.execute({ id: Number(id) });
-            return new PokemonPresenter(pokemon);
-        } catch (error) {
-            // Let the filter/interceptor handle mapping, or rethrow
-            throw error;
-        }
+        const pokemon = await this.importPokemonByIdUseCase.execute({ id: Number(id) });
+        return new PokemonPresenter(pokemon);
     }
 }
 

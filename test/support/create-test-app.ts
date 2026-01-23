@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
+import { PokemonGraphQLExceptionFilter } from '../../src/infrastructure/pokemon/graphql/pokemon-graphql-exception.filter';
 
 // NOTE: Mirror main.ts global pipes so e2e apps behave like the real bootstrap.
 export async function createTestApp(module: TestingModule): Promise<INestApplication> {
@@ -16,6 +17,10 @@ export async function createTestApp(module: TestingModule): Promise<INestApplica
     });
 
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, transformOptions: { enableImplicitConversion: true } }));
+
+    // Register GraphQL exception filter globally for E2E tests
+    app.useGlobalFilters(new PokemonGraphQLExceptionFilter());
+
     await app.init();
     return app;
 }

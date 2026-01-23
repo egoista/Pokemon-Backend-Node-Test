@@ -17,10 +17,7 @@ export class CreatePokemonUseCase {
     async execute(input: CreatePokemonInput): Promise<Pokemon> {
         const { id, name, types } = input;
 
-        const existingPokemon = await this.pokemonRepository.findByName(name);
-        if (existingPokemon) {
-            throw new PokemonAlreadyExistsError(name);
-        }
+        await this.checkUniqueness(id, name);
 
         const typeEntities = types.map(
             (typeName) => new Type(0, typeName, new Date())
@@ -29,5 +26,19 @@ export class CreatePokemonUseCase {
         const pokemon = new Pokemon(id, name, typeEntities);
 
         return this.pokemonRepository.save(pokemon);
+    }
+
+    private async checkUniqueness(id: number, name: string): Promise<void> {
+        // Check for duplicate name
+        const existingPokemonByName = await this.pokemonRepository.findByName(name);
+        if (existingPokemonByName) {
+            throw new PokemonAlreadyExistsError(name);
+        }
+
+        // Check for duplicate ID to prevent database constraint violations
+        const existingPokemonById = await this.pokemonRepository.findById(id);
+        if (existingPokemonById) {
+            throw new PokemonAlreadyExistsError(existingPokemonById.name);
+        }
     }
 }
