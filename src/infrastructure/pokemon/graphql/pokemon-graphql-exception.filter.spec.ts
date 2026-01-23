@@ -132,6 +132,37 @@ describe('PokemonGraphQLExceptionFilter', () => {
         expect(result.extensions?.statusCode).toBe(502);
     });
 
+    it('should sanitize GraphQLError extensions and preserve message', () => {
+        const exception = new GraphQLError('Boom', {
+            extensions: {
+                code: 'BAD_REQUEST',
+                exception: { debug: true },
+                stacktrace: ['stack'],
+            },
+        });
+
+        const result = filter.catch(exception, mockArgumentsHost);
+
+        expect(result).toBeInstanceOf(GraphQLError);
+        expect(result.message).toBe('Boom');
+        expect(result.extensions?.code).toBe('BAD_REQUEST');
+        expect(result.extensions?.exception).toBeUndefined();
+        expect(result.extensions?.stacktrace).toBeUndefined();
+        expect(result.stack).toBeUndefined();
+    });
+
+    it('should handle GraphQLError without extensions', () => {
+        const exception = new GraphQLError('No extensions');
+        (exception as unknown as { extensions?: unknown }).extensions = undefined;
+
+        const result = filter.catch(exception, mockArgumentsHost);
+
+        expect(result).toBeInstanceOf(GraphQLError);
+        expect(result.message).toBe('No extensions');
+        expect(result.extensions).toEqual({});
+        expect(result.stack).toBeUndefined();
+    });
+
     it('should catch generic error and return GraphQLError with INTERNAL_SERVER_ERROR', () => {
         const exception = new Error('Random error');
         const result = filter.catch(exception, mockArgumentsHost);

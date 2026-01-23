@@ -74,6 +74,40 @@ describe('UpdatePokemonUseCase', () => {
         await expect(useCase.execute(input)).rejects.toThrow(PokemonAlreadyExistsError);
     });
 
+    it('should throw ValidationError when input is missing', async () => {
+        await expect(
+            useCase.execute(undefined as unknown as any)
+        ).rejects.toThrow(ValidationError);
+    });
+
+    it('should throw ValidationError when id is not a number', async () => {
+        const input = { id: Number('nope'), name: 'Raichu' };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when name is not a string', async () => {
+        const input = { id: 1, name: 123 as unknown as string };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when types is not an array', async () => {
+        const input = { id: 1, types: 'Electric' as unknown as string[] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when types contains non-string values', async () => {
+        const input = { id: 1, types: ['Electric', 123 as unknown as string] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
+    });
+
     it('should throw ValidationError when no update fields are provided', async () => {
         const input = { id: 1 };
 

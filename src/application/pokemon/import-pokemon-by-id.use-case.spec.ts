@@ -63,6 +63,11 @@ describe('ImportPokemonByIdUseCase', () => {
         expect(pokeApiClient.getPokemonById).not.toHaveBeenCalled();
     });
 
+    it('should throw ValidationError when input is missing', async () => {
+        await expect(useCase.execute(undefined as unknown as any)).rejects.toThrow(ValidationError);
+        expect(pokeApiClient.getPokemonById).not.toHaveBeenCalled();
+    });
+
     it('should propagate errors from PokeApiClient', async () => {
         const id = 999;
         const error = new Error('PokeAPI Error');

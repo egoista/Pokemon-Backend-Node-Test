@@ -50,6 +50,56 @@ describe('ListPokemonsUseCase', () => {
         });
     });
 
+    it('should use defaults when no query is provided', async () => {
+        (pokemonRepository.findWithFilters as jest.Mock).mockResolvedValue({
+            data: [],
+            totalCount: 0,
+        });
+
+        const result = await useCase.execute();
+
+        expect(pokemonRepository.findWithFilters).toHaveBeenCalledWith({
+            type: undefined,
+            name: undefined,
+            sortBy: 'name',
+            sortOrder: 'asc',
+            offset: 0,
+            limit: 20,
+        });
+        expect(result.pagination).toEqual({
+            page: 1,
+            limit: 20,
+            totalCount: 0,
+            totalPages: 0,
+        });
+    });
+
+    it('should pass sorting and pagination parameters to the repository', async () => {
+        (pokemonRepository.findWithFilters as jest.Mock).mockResolvedValue({
+            data: [],
+            totalCount: 7,
+        });
+
+        const result = await useCase.execute({
+            type: 'Fire',
+            name: 'char',
+            sortBy: 'id',
+            sortOrder: 'desc',
+            page: 3,
+            limit: 3,
+        });
+
+        expect(pokemonRepository.findWithFilters).toHaveBeenCalledWith({
+            type: 'Fire',
+            name: 'char',
+            sortBy: 'id',
+            sortOrder: 'desc',
+            offset: 6,
+            limit: 3,
+        });
+        expect(result.pagination.totalPages).toBe(3);
+    });
+
     it('should validate page and limit', async () => {
         await expect(useCase.execute({ page: 0 })).rejects.toThrow(ValidationError);
         await expect(useCase.execute({ limit: 0 })).rejects.toThrow(ValidationError);
@@ -70,5 +120,15 @@ describe('ListPokemonsUseCase', () => {
     it('should validate sortBy and sortOrder', async () => {
         await expect(useCase.execute({ sortBy: 'invalid' })).rejects.toThrow(ValidationError);
         await expect(useCase.execute({ sortOrder: 'invalid' })).rejects.toThrow(ValidationError);
+    });
+
+    it('should validate query input presence', async () => {
+        await expect(useCase.execute(null as unknown as any)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findWithFilters).not.toHaveBeenCalled();
+    });
+
+    it('should validate type and name types', async () => {
+        await expect(useCase.execute({ type: 123 as unknown as string })).rejects.toThrow(ValidationError);
+        await expect(useCase.execute({ name: 123 as unknown as string })).rejects.toThrow(ValidationError);
     });
 });

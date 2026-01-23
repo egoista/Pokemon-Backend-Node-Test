@@ -3,6 +3,7 @@ import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.inter
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { Type } from '../../domain/type.entity';
 import { PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
+import { ValidationError } from '../shared/errors/application.errors';
 
 describe('DeletePokemonUseCase', () => {
     let useCase: DeletePokemonUseCase;
@@ -41,5 +42,12 @@ describe('DeletePokemonUseCase', () => {
         await expect(useCase.execute(pokemonId)).rejects.toThrow(PokemonNotFoundError);
         expect(pokemonRepository.findById).toHaveBeenCalledWith(pokemonId);
         expect(pokemonRepository.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError for invalid id', async () => {
+        await expect(useCase.execute(0)).rejects.toThrow(ValidationError);
+        await expect(useCase.execute(-1)).rejects.toThrow(ValidationError);
+        await expect(useCase.execute(1.2)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
     });
 });

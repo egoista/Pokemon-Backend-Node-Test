@@ -87,4 +87,17 @@ describe('PokemonHttpExceptionFilter', () => {
             }),
         );
     });
+
+    it('should handle non-error values as UnknownError', () => {
+        filter.catch('oops' as unknown as any, mockArgumentsHost);
+
+        expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect(mockResponse.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Internal server error',
+                error: 'UnknownError',
+            }),
+        );
+    });
 });

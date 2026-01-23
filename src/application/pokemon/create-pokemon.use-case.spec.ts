@@ -8,6 +8,7 @@ import {
     InvalidPokemonTypeError,
 } from '../../domain/pokemon/pokemon.errors';
 import { Type } from '../../domain/type.entity';
+import { ValidationError } from '../shared/errors/application.errors';
 
 describe('CreatePokemonUseCase', () => {
     let useCase: CreatePokemonUseCase;
@@ -58,6 +59,52 @@ describe('CreatePokemonUseCase', () => {
 
         expect(pokemonRepository.findByName).toHaveBeenCalledWith('Pikachu');
         expect(pokemonRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when input is missing', async () => {
+        await expect(
+            useCase.execute(undefined as unknown as any)
+        ).rejects.toThrow(ValidationError);
+    });
+
+    it('should throw ValidationError when id is not a number', async () => {
+        const input = { id: Number('nope'), name: 'Pikachu', types: ['Electric'] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findByName).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when name is not a string', async () => {
+        const input = { id: 1, name: 123 as unknown as string, types: ['Electric'] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findByName).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when types is not an array', async () => {
+        const input = { id: 1, name: 'Pikachu', types: 'Electric' as unknown as string[] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findByName).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when types contains non-string values', async () => {
+        const input = { id: 1, name: 'Pikachu', types: ['Electric', 123 as unknown as string] };
+
+        await expect(useCase.execute(input)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findByName).not.toHaveBeenCalled();
+    });
+
+    it('should throw PokemonAlreadyExistsError if id already exists', async () => {
+        const input = { id: 25, name: 'Pikachu', types: ['Electric'] };
+        const existingPokemon = new Pokemon(25, 'Raichu', [new Type('Electric', new Date(), 1)]);
+
+        (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
+        (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
+
+        await expect(useCase.execute(input)).rejects.toThrow(PokemonAlreadyExistsError);
+
+        expect(pokemonRepository.findById).toHaveBeenCalledWith(25);
     });
 
     it('should throw error if name is empty', async () => {

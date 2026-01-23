@@ -4,6 +4,7 @@ import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonNotFoundError } from '../../domain/pokemon/pokemon.errors';
 
 import { Type } from '../../domain/type.entity';
+import { ValidationError } from '../shared/errors/application.errors';
 
 describe('GetPokemonByIdUseCase', () => {
     let useCase: GetPokemonByIdUseCase;
@@ -40,5 +41,12 @@ describe('GetPokemonByIdUseCase', () => {
 
         await expect(useCase.execute(pokemonId)).rejects.toThrow(PokemonNotFoundError);
         expect(pokemonRepository.findById).toHaveBeenCalledWith(pokemonId);
+    });
+
+    it('should throw ValidationError for invalid id', async () => {
+        await expect(useCase.execute(0)).rejects.toThrow(ValidationError);
+        await expect(useCase.execute(-5)).rejects.toThrow(ValidationError);
+        await expect(useCase.execute(1.1)).rejects.toThrow(ValidationError);
+        expect(pokemonRepository.findById).not.toHaveBeenCalled();
     });
 });

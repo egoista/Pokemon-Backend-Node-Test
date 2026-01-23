@@ -5,6 +5,7 @@ import { TypeEntity } from '../entities/type.entity.typeorm';
 import { Pokemon } from '../../../domain/pokemon/pokemon.entity';
 import { Type } from '../../../domain/type.entity';
 import { PokemonListFilters } from '../../../domain/pokemon/pokemon.repository.interface';
+import { InvalidPokemonTypeError } from '../../../domain/pokemon/pokemon.errors';
 
 describe('PokemonRepositoryTypeORM', () => {
     let repository: PokemonRepositoryTypeORM;
@@ -66,6 +67,19 @@ describe('PokemonRepositoryTypeORM', () => {
             const result = await repository.findById(999);
 
             expect(result).toBeNull();
+        });
+
+        it('should map empty types when entity has no relations loaded', async () => {
+            const mockEntity: PokemonEntity = {
+                id: 2,
+                name: 'Eevee',
+                types: undefined as unknown as TypeEntity[],
+                created_at: new Date(),
+            };
+
+            mockPokemonRepository.findOne.mockResolvedValue(mockEntity);
+
+            await expect(repository.findById(2)).rejects.toThrow(InvalidPokemonTypeError);
         });
     });
 
