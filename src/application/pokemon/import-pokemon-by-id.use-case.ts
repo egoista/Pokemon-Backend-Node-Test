@@ -15,11 +15,8 @@ export class ImportPokemonByIdUseCase {
     ) { }
 
     async execute(input: ImportPokemonInput): Promise<Pokemon> {
+        this.validateInput(input);
         const { id } = input;
-
-        if (!Number.isInteger(id) || id <= 0) {
-            throw new ValidationError('Pokemon ID must be a positive integer.');
-        }
 
         // 1. Fetch from external API
         const pokeApiDto = await this.pokeApiClient.getPokemonById(id);
@@ -34,5 +31,14 @@ export class ImportPokemonByIdUseCase {
 
         // 3. Upsert to repository
         return this.pokemonRepository.upsert(pokemon);
+    }
+
+    private validateInput(input: ImportPokemonInput): void {
+        if (!input) {
+            throw new ValidationError('Input is required.');
+        }
+        if (!Number.isInteger(input.id) || input.id <= 0) {
+            throw new ValidationError('Pokemon ID must be a positive integer.');
+        }
     }
 }

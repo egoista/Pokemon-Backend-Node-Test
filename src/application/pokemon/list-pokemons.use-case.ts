@@ -4,6 +4,7 @@ import {
     PokemonListResult,
     PokemonRepository,
 } from '../../domain/pokemon/pokemon.repository.interface';
+import { ValidationError } from '../shared/errors/application.errors';
 import { normalizeListQuery } from '../shared/query/list-query';
 
 export interface ListPokemonsQuery {
@@ -33,6 +34,7 @@ export class ListPokemonsUseCase {
     ) { }
 
     async execute(query: ListPokemonsQuery = {}): Promise<ListPokemonsResult> {
+        this.validateInput(query);
         const list = normalizeListQuery<PokemonSortField>(query, {
             defaultSortBy: 'name',
             allowedSortBy: ['name', 'id', 'type', 'created_at'] as const,
@@ -61,5 +63,17 @@ export class ListPokemonsUseCase {
                 totalPages,
             },
         };
+    }
+
+    private validateInput(query: ListPokemonsQuery): void {
+        if (!query) {
+            throw new ValidationError('Query is required.');
+        }
+        if (query.type !== undefined && typeof query.type !== 'string') {
+            throw new ValidationError('type must be a string.');
+        }
+        if (query.name !== undefined && typeof query.name !== 'string') {
+            throw new ValidationError('name must be a string.');
+        }
     }
 }

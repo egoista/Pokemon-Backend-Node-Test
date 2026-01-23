@@ -1,6 +1,7 @@
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonAlreadyExistsError } from '../../domain/pokemon/pokemon.errors';
+import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
 
 export interface CreatePokemonInput {
@@ -15,6 +16,7 @@ export class CreatePokemonUseCase {
     ) { }
 
     async execute(input: CreatePokemonInput): Promise<Pokemon> {
+        this.validateInput(input);
         const { id, name, types } = input;
 
         await this.checkUniqueness(id, name);
@@ -26,6 +28,24 @@ export class CreatePokemonUseCase {
         const pokemon = new Pokemon(id, name, typeEntities);
 
         return this.pokemonRepository.save(pokemon);
+    }
+
+    private validateInput(input: CreatePokemonInput): void {
+        if (!input) {
+            throw new ValidationError('Input is required.');
+        }
+        if (typeof input.id !== 'number' || Number.isNaN(input.id)) {
+            throw new ValidationError('id must be a number.');
+        }
+        if (typeof input.name !== 'string') {
+            throw new ValidationError('name must be a string.');
+        }
+        if (!Array.isArray(input.types)) {
+            throw new ValidationError('types must be an array.');
+        }
+        if (input.types.some((type) => typeof type !== 'string')) {
+            throw new ValidationError('types must be an array of strings.');
+        }
     }
 
     private async checkUniqueness(id: number, name: string): Promise<void> {

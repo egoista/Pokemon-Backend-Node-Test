@@ -16,11 +16,8 @@ export class UpdatePokemonUseCase {
     ) { }
 
     async execute(input: UpdatePokemonInput): Promise<Pokemon> {
+        this.validateInput(input);
         const { id, name, types } = input;
-
-        if (name === undefined && types === undefined) {
-            throw new ValidationError('At least one field (name or types) must be provided for update.');
-        }
 
         const pokemon = await this.pokemonRepository.findById(id);
         if (!pokemon) {
@@ -44,5 +41,26 @@ export class UpdatePokemonUseCase {
         }
 
         return this.pokemonRepository.update(pokemon);
+    }
+
+    private validateInput(input: UpdatePokemonInput): void {
+        if (!input) {
+            throw new ValidationError('Input is required.');
+        }
+        if (typeof input.id !== 'number' || Number.isNaN(input.id)) {
+            throw new ValidationError('id must be a number.');
+        }
+        if (input.name !== undefined && typeof input.name !== 'string') {
+            throw new ValidationError('name must be a string.');
+        }
+        if (input.types !== undefined && !Array.isArray(input.types)) {
+            throw new ValidationError('types must be an array.');
+        }
+        if (input.types?.some((type) => typeof type !== 'string')) {
+            throw new ValidationError('types must be an array of strings.');
+        }
+        if (input.name === undefined && input.types === undefined) {
+            throw new ValidationError('At least one field (name or types) must be provided for update.');
+        }
     }
 }
