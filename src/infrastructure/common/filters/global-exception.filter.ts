@@ -6,6 +6,7 @@ import {
     HttpStatus,
     Logger,
 } from '@nestjs/common';
+import { GqlArgumentsHost } from '@nestjs/graphql';
 import { Response } from 'express';
 
 // ARCH: Global HTTP safety net for unhandled exceptions.
@@ -16,6 +17,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(GlobalExceptionFilter.name);
 
     catch(exception: unknown, host: ArgumentsHost) {
+        // Only handle HTTP context, let GraphQL filters handle GraphQL errors
+        const contextType = host.getType();
+        if (contextType.toString() === 'graphql') {
+            // Re-throw to let GraphQL-specific filters handle it
+            throw exception;
+        }
+
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
 

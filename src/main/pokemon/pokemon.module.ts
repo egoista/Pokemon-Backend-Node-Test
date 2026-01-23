@@ -16,6 +16,7 @@ import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructu
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
 import { TypeEntity } from '../../infrastructure/pokemon/entities/type.entity.typeorm'; // Check path
+import { PokemonGraphQLExceptionFilter } from '../../infrastructure/pokemon/graphql/pokemon-graphql-exception.filter';
 
 const POKEMON_REPOSITORY = 'POKEMON_REPOSITORY';
 const POKE_API_CLIENT = 'POKE_API_CLIENT';
@@ -33,6 +34,7 @@ const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
         ...(useTypeOrm ? [PokemonRepositoryTypeORM] : [PokemonRepositoryPrisma]),
         PokemonResolver,
         CreatePokemonResultResolver,
+        PokemonGraphQLExceptionFilter,
         PokeApiClientImpl,
         useTypeOrm
             ? { provide: POKEMON_REPOSITORY, useExisting: PokemonRepositoryTypeORM }
