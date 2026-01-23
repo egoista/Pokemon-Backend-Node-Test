@@ -1,8 +1,9 @@
 import { Pokemon } from '../../domain/pokemon/pokemon.entity';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
-import { PokeApiClient } from './ports/poke-api.client.interface';
+import { PokeApiClient, PokeApiPokemonDto } from './ports/poke-api.client.interface';
 import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
+import { AppLogger, NullLogger } from '../shared/logger/logger.interface';
 
 export interface ImportPokemonInput {
     id: number;
@@ -11,7 +12,8 @@ export interface ImportPokemonInput {
 export class ImportPokemonByIdUseCase {
     constructor(
         private readonly pokemonRepository: PokemonRepository,
-        private readonly pokeApiClient: PokeApiClient
+        private readonly pokeApiClient: PokeApiClient,
+        private readonly logger: AppLogger = new NullLogger(),
     ) { }
 
     async execute(input: ImportPokemonInput): Promise<Pokemon> {
