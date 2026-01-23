@@ -242,7 +242,7 @@ describe('PokemonRepositoryTypeORM', () => {
 
     describe('save', () => {
         it('should create a new Pokemon with types', async () => {
-            const electricType = new Type(0, 'Electric', new Date());
+            const electricType = new Type('Electric', new Date());
             const pokemon = new Pokemon(25, 'Pikachu', [electricType], new Date());
 
             const mockTypeEntity: TypeEntity = {
@@ -273,7 +273,7 @@ describe('PokemonRepositoryTypeORM', () => {
         });
 
         it('should resolve and create new types if they do not exist', async () => {
-            const newType = new Type(0, 'NewType', new Date());
+            const newType = new Type('NewType', new Date());
             const pokemon = new Pokemon(1, 'TestMon', [newType], new Date());
 
             const mockNewTypeEntity: TypeEntity = {
@@ -305,7 +305,7 @@ describe('PokemonRepositoryTypeORM', () => {
         });
 
         it('should reuse existing types', async () => {
-            const existingType = new Type(0, 'Fire', new Date());
+            const existingType = new Type('Fire', new Date());
             const pokemon = new Pokemon(4, 'Charmander', [existingType], new Date());
 
             const mockTypeEntity: TypeEntity = {
@@ -333,8 +333,8 @@ describe('PokemonRepositoryTypeORM', () => {
         });
 
         it('should handle multiple types correctly', async () => {
-            const fireType = new Type(0, 'Fire', new Date());
-            const flyingType = new Type(0, 'Flying', new Date());
+            const fireType = new Type('Fire', new Date());
+            const flyingType = new Type('Flying', new Date());
             const pokemon = new Pokemon(6, 'Charizard', [fireType, flyingType], new Date());
 
             const mockFireType: TypeEntity = {
@@ -375,7 +375,7 @@ describe('PokemonRepositoryTypeORM', () => {
 
     describe('update', () => {
         it('should update Pokemon and its types', async () => {
-            const waterType = new Type(0, 'Water', new Date());
+            const waterType = new Type('Water', new Date());
             const pokemon = new Pokemon(7, 'Squirtle', [waterType], new Date());
 
             const mockTypeEntity: TypeEntity = {
@@ -409,7 +409,7 @@ describe('PokemonRepositoryTypeORM', () => {
         });
 
         it('should fall back to save if preload returns null', async () => {
-            const pokemon = new Pokemon(999, 'NewMon', [new Type(0, 'Normal', new Date())], new Date());
+            const pokemon = new Pokemon(999, 'NewMon', [new Type('Normal', new Date())], new Date());
 
             const mockTypeEntity: TypeEntity = {
                 id: 5,
@@ -440,7 +440,7 @@ describe('PokemonRepositoryTypeORM', () => {
 
     describe('upsert', () => {
         it('should delegate to save method', async () => {
-            const pokemon = new Pokemon(1, 'Bulbasaur', [new Type(0, 'Grass', new Date())], new Date());
+            const pokemon = new Pokemon(1, 'Bulbasaur', [new Type('Grass', new Date())], new Date());
 
             const mockTypeEntity: TypeEntity = {
                 id: 1,

@@ -26,7 +26,7 @@ describe('GetPokemonByIdUseCase', () => {
     it('should return pokemon when it exists', async () => {
         // Arrange
         const pokemonId = 1;
-        const expectedPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
+        const expectedPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(expectedPokemon);
 
         // Act

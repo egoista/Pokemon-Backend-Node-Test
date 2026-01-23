@@ -158,7 +158,7 @@ export class PokemonRepositoryPrisma implements PokemonRepository {
             prismaPokemon.id,
             prismaPokemon.name,
             prismaPokemon.types.map(
-                (t: any) => new Type(t.id, t.name, t.created_at)
+                (t: any) => new Type(t.name, t.created_at, t.id)
             ),
             prismaPokemon.created_at,
         );

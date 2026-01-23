@@ -25,7 +25,7 @@ describe('DeletePokemonUseCase', () => {
     it('should delete pokemon when it exists', async () => {
         // Arrange
         const pokemonId = 1;
-        const existingPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
+        const existingPokemon = new Pokemon(pokemonId, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.delete as jest.Mock).mockResolvedValue(undefined);
 

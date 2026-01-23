@@ -7,8 +7,8 @@ import {
 } from './pokemon.errors';
 
 describe('Pokemon Entity', () => {
-    const typeElectric = new Type(1, 'Electric', new Date());
-    const typeSteel = new Type(2, 'Steel', new Date());
+    const typeElectric = new Type('Electric', new Date(), 1);
+    const typeSteel = new Type('Steel', new Date(), 2);
 
     it('should create a valid pokemon', () => {
         const pokemon = new Pokemon(1, 'Pikachu', [typeElectric]);
@@ -52,7 +52,7 @@ describe('Pokemon Entity', () => {
 
     it('should utilize provided createdAt date', () => {
         const date = new Date('2023-01-01');
-        const pokemon = new Pokemon(1, 'Bulbasaur', [new Type(3, 'Grass', new Date())], date);
+        const pokemon = new Pokemon(1, 'Bulbasaur', [new Type('Grass', new Date(), 3)], date);
         expect(pokemon.createdAt).toBe(date);
         expect(pokemon.createdAt.toISOString()).toBe(
             '2023-01-01T00:00:00.000Z',
@@ -61,7 +61,7 @@ describe('Pokemon Entity', () => {
 
     it('should create a new date if createdAt is not provided', () => {
         const before = new Date();
-        const pokemon = new Pokemon(1, 'Charmander', [new Type(4, 'Fire', new Date())]);
+        const pokemon = new Pokemon(1, 'Charmander', [new Type('Fire', new Date(), 4)]);
         const after = new Date();
 
         expect(pokemon.createdAt.getTime()).toBeGreaterThanOrEqual(

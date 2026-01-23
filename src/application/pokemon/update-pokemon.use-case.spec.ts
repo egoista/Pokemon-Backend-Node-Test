@@ -27,8 +27,8 @@ describe('UpdatePokemonUseCase', () => {
     it('should update name and type successfully', async () => {
         // Arrange
         const input = { id: 1, name: 'Raichu', types: ['Electric'] };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
-        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type(1, 'Electric', new Date())], existingPokemon.createdAt);
+        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
+        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
 
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
@@ -47,8 +47,8 @@ describe('UpdatePokemonUseCase', () => {
     it('should update only name successfully', async () => {
         // Arrange
         const input = { id: 1, name: 'Raichu' };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
-        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type(1, 'Electric', new Date())], existingPokemon.createdAt);
+        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
+        const updatedPokemon = new Pokemon(1, 'Raichu', [new Type('Electric', new Date(), 1)], existingPokemon.createdAt);
 
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(null);
@@ -74,8 +74,8 @@ describe('UpdatePokemonUseCase', () => {
     it('should throw PokemonAlreadyExistsError when new name is taken', async () => {
         // Arrange
         const input = { id: 1, name: 'Raichu' };
-        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type(1, 'Electric', new Date())], new Date());
-        const anotherPokemon = new Pokemon(2, 'Raichu', [new Type(2, 'Electric', new Date())], new Date());
+        const existingPokemon = new Pokemon(1, 'Pikachu', [new Type('Electric', new Date(), 1)], new Date());
+        const anotherPokemon = new Pokemon(2, 'Raichu', [new Type('Electric', new Date(), 2)], new Date());
 
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.findByName as jest.Mock).mockResolvedValue(anotherPokemon);
@@ -96,11 +96,11 @@ describe('UpdatePokemonUseCase', () => {
     it('should update pokemon with multiple types', async () => {
         // Arrange
         const input = { id: 1, types: ['Fire', 'Flying'] };
-        const existingPokemon = new Pokemon(1, 'Charizard', [new Type(1, 'Fire', new Date())], new Date());
+        const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(
             1,
             'Charizard',
-            [new Type(1, 'Fire', new Date()), new Type(2, 'Flying', new Date())],
+            [new Type('Fire', new Date(), 1), new Type('Flying', new Date(), 2)],
             existingPokemon.createdAt,
         );
 
@@ -121,8 +121,8 @@ describe('UpdatePokemonUseCase', () => {
     it('should replace all types when updating', async () => {
         // Arrange
         const input = { id: 1, types: ['Water'] };
-        const existingPokemon = new Pokemon(1, 'Charizard', [new Type(1, 'Fire', new Date())], new Date());
-        const updatedPokemon = new Pokemon(1, 'Charizard', [new Type(2, 'Water', new Date())], existingPokemon.createdAt);
+        const existingPokemon = new Pokemon(1, 'Charizard', [new Type('Fire', new Date(), 1)], new Date());
+        const updatedPokemon = new Pokemon(1, 'Charizard', [new Type('Water', new Date(), 2)], existingPokemon.createdAt);
 
         (pokemonRepository.findById as jest.Mock).mockResolvedValue(existingPokemon);
         (pokemonRepository.update as jest.Mock).mockResolvedValue(updatedPokemon);
@@ -140,11 +140,11 @@ describe('UpdatePokemonUseCase', () => {
     it('should update only types without changing name', async () => {
         // Arrange
         const input = { id: 1, types: ['Electric', 'Steel'] };
-        const existingPokemon = new Pokemon(1, 'Magnezone', [new Type(1, 'Electric', new Date())], new Date());
+        const existingPokemon = new Pokemon(1, 'Magnezone', [new Type('Electric', new Date(), 1)], new Date());
         const updatedPokemon = new Pokemon(
             1,
             'Magnezone',
-            [new Type(1, 'Electric', new Date()), new Type(2, 'Steel', new Date())],
+            [new Type('Electric', new Date(), 1), new Type('Steel', new Date(), 2)],
             existingPokemon.createdAt,
         );
 
