@@ -6,6 +6,7 @@ import {
 } from '../../domain/pokemon/pokemon.repository.interface';
 import { ValidationError } from '../shared/errors/application.errors';
 import { normalizeListQuery } from '../shared/query/list-query';
+import { AppLogger, NullLogger } from '../shared/logger/logger.interface';
 
 export interface ListPokemonsQuery {
     type?: string;
@@ -30,7 +31,8 @@ type PokemonSortField = 'name' | 'id' | 'type' | 'created_at';
 
 export class ListPokemonsUseCase {
     constructor(
-        private readonly pokemonRepository: PokemonRepository
+        private readonly pokemonRepository: PokemonRepository,
+        private readonly logger: AppLogger = new NullLogger(),
     ) { }
 
     async execute(query: ListPokemonsQuery = {}): Promise<ListPokemonsResult> {
@@ -54,6 +56,11 @@ export class ListPokemonsUseCase {
         const result: PokemonListResult = await this.pokemonRepository.findWithFilters(filters);
         const totalPages = Math.ceil(result.totalCount / list.limit);
 
+        this.logger.info('pokemon.listed', {
+            totalCount: result.totalCount,
+            page: list.page,
+            limit: list.limit,
+        });
         return {
             data: result.data,
             pagination: {

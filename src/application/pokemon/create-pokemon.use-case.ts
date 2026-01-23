@@ -3,6 +3,7 @@ import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.inter
 import { PokemonAlreadyExistsError } from '../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../shared/errors/application.errors';
 import { Type } from '../../domain/type.entity';
+import { AppLogger, NullLogger } from '../shared/logger/logger.interface';
 
 export interface CreatePokemonInput {
     id: number;
@@ -12,7 +13,8 @@ export interface CreatePokemonInput {
 
 export class CreatePokemonUseCase {
     constructor(
-        private readonly pokemonRepository: PokemonRepository
+        private readonly pokemonRepository: PokemonRepository,
+        private readonly logger: AppLogger = new NullLogger(),
     ) { }
 
     async execute(input: CreatePokemonInput): Promise<Pokemon> {
@@ -27,7 +29,13 @@ export class CreatePokemonUseCase {
 
         const pokemon = new Pokemon(id, name, typeEntities);
 
-        return this.pokemonRepository.save(pokemon);
+        const savedPokemon = await this.pokemonRepository.save(pokemon);
+        this.logger.info('pokemon.created', {
+            pokemonId: savedPokemon.id,
+            name: savedPokemon.name,
+            typesCount: savedPokemon.types.length,
+        });
+        return savedPokemon;
     }
 
     private validateInput(input: CreatePokemonInput): void {
