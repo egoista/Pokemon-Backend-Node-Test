@@ -20,34 +20,16 @@ export class ImportPokemonByIdUseCase {
         this.validateInput(input);
         const { id } = input;
 
-        // 1. Fetch from external API
-        let pokeApiDto: PokeApiPokemonDto;
-        try {
-            pokeApiDto = await this.pokeApiClient.getPokemonById(id);
-        } catch (error) {
-            this.logger.error('pokemon.import_failed', {
-                pokemonId: id,
-                error: error instanceof Error ? error.message : String(error),
-            });
-            throw error;
-        }
+        const pokeApiDto = await this.pokeApiClient.getPokemonById(id);
 
-        // 2. Map to domain entities
         const types = pokeApiDto.types.map(
             (t) => new Type(t.type.name, new Date())
         );
 
-        // We use the ID from PokeAPI
+        // ADR-012: Use external API id as the domain identifier on import.
         const pokemon = new Pokemon(pokeApiDto.id, pokeApiDto.name, types);
 
-        // 3. Upsert to repository
-        const savedPokemon = await this.pokemonRepository.upsert(pokemon);
-        this.logger.info('pokemon.imported', {
-            pokemonId: savedPokemon.id,
-            name: savedPokemon.name,
-            typesCount: savedPokemon.types.length,
-        });
-        return savedPokemon;
+        return this.pokemonRepository.upsert(pokemon);
     }
 
     private validateInput(input: ImportPokemonInput): void {

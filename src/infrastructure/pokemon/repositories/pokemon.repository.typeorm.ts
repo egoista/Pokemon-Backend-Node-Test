@@ -58,7 +58,6 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
         query.leftJoinAndSelect('pokemon.types', 'type');
 
         if (filters.type) {
-            // Filter where at least one type matches
             query.andWhere('type.name = :type', { type: filters.type });
         }
 
@@ -82,7 +81,6 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
     }
 
     async save(pokemon: Pokemon): Promise<Pokemon> {
-        // Resolve types
         const typeEntities = await this.resolveTypes(pokemon.types);
 
         const entity = this.repository.create({
@@ -98,10 +96,8 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
     }
 
     async update(pokemon: Pokemon): Promise<Pokemon> {
-        // Resolve types
         const typeEntities = await this.resolveTypes(pokemon.types);
 
-        // Preload checks if entity exists and merges data
         const entity = await this.repository.preload({
             id: pokemon.id,
             name: pokemon.name,
@@ -109,7 +105,7 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
         });
 
         if (!entity) {
-            // Should not happen if use case guarantees existence, but for safety
+            // NOTE: Fallback to save when preload does not find the entity.
             return this.save(pokemon);
         }
 
@@ -119,7 +115,7 @@ export class PokemonRepositoryTypeORM implements PokemonRepository {
     }
 
     async upsert(pokemon: Pokemon): Promise<Pokemon> {
-        // For TypeORM, save() acts as upsert if ID is present
+        // NOTE: TypeORM save() acts as upsert when id is present.
         return this.save(pokemon);
     }
 

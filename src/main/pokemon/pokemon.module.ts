@@ -15,7 +15,7 @@ import { PokeApiClient } from '../../application/pokemon/ports/poke-api.client.i
 import { PokemonResolver, CreatePokemonResultResolver } from '../../infrastructure/pokemon/graphql/pokemon.resolver';
 import { PokemonRepository } from '../../domain/pokemon/pokemon.repository.interface';
 import { PokemonEntity } from '../../infrastructure/pokemon/entities/pokemon.entity.typeorm';
-import { TypeEntity } from '../../infrastructure/pokemon/entities/type.entity.typeorm'; // Check path
+import { TypeEntity } from '../../infrastructure/pokemon/entities/type.entity.typeorm';
 import { PokemonGraphQLExceptionFilter } from '../../infrastructure/pokemon/graphql/pokemon-graphql-exception.filter';
 import { NestLoggerAdapter } from '../../infrastructure/common/logger/nest-logger.adapter';
 
@@ -24,7 +24,7 @@ const POKE_API_CLIENT = 'POKE_API_CLIENT';
 const pokemonRepositoryImpl = process.env.POKEMON_REPOSITORY ?? 'prisma';
 const useTypeOrm = pokemonRepositoryImpl === 'typeorm';
 
-// ARCH: Composition root for Pokemon feature; wire concrete adapters here.
+// ARCH: Pokemon composition root; bind concrete adapters and use cases.
 // ADR-006: Manual composition root. ADR-004: Multiple ORMs via repository abstraction.
 @Module({
     imports: useTypeOrm

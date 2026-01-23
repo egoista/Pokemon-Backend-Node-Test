@@ -17,10 +17,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(GlobalExceptionFilter.name);
 
     catch(exception: unknown, host: ArgumentsHost) {
-        // Only handle HTTP context, let GraphQL filters handle GraphQL errors
         const contextType = host.getType();
         if (contextType.toString() === 'graphql') {
-            // Re-throw to let GraphQL-specific filters handle it
             throw exception;
         }
 
@@ -39,7 +37,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
             this.logger.error(exception);
-            // SEC: Avoid leaking stack traces or internal details in 500 responses.
             response.status(status).json({
                 statusCode: 500,
                 message: 'Internal server error',

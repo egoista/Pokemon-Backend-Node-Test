@@ -104,7 +104,8 @@ export class PokemonRepositoryPrisma implements PokemonRepository {
             data: {
                 name: pokemon.name,
                 types: {
-                    set: [], // Disconnect all
+                    // NOTE: Reset type relations to match the incoming list.
+                    set: [],
                     connectOrCreate: pokemon.types.map((type) => ({
                         where: { name: type.name },
                         create: { name: type.name },
@@ -123,7 +124,8 @@ export class PokemonRepositoryPrisma implements PokemonRepository {
             update: {
                 name: pokemon.name,
                 types: {
-                    set: [], // Disconnect all
+                    // NOTE: Reset type relations to match the incoming list.
+                    set: [],
                     connectOrCreate: pokemon.types.map((type) => ({
                         where: { name: type.name },
                         create: { name: type.name },

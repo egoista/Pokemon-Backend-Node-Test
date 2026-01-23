@@ -57,13 +57,12 @@ export class CreatePokemonUseCase {
     }
 
     private async checkUniqueness(id: number, name: string): Promise<void> {
-        // Check for duplicate name
+        // NOTE: Pre-checks keep domain errors consistent instead of DB constraints.
         const existingPokemonByName = await this.pokemonRepository.findByName(name);
         if (existingPokemonByName) {
             throw new PokemonAlreadyExistsError(name);
         }
 
-        // Check for duplicate ID to prevent database constraint violations
         const existingPokemonById = await this.pokemonRepository.findById(id);
         if (existingPokemonById) {
             throw new PokemonAlreadyExistsError(existingPokemonById.name);

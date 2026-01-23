@@ -1,3 +1,4 @@
+// ARCH: Outbound port for external PokeAPI integration.
 export interface PokeApiPokemonDto {
     id: number;
     name: string;

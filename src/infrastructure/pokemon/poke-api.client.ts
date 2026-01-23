@@ -7,6 +7,7 @@ import {
 } from '../../domain/pokemon/pokemon.errors';
 import { PokeApiClient, PokeApiPokemonDto } from '../../application/pokemon/ports/poke-api.client.interface';
 
+// ARCH: External API adapter implementing the PokeApiClient port.
 @Injectable()
 export class PokeApiClientImpl implements PokeApiClient {
     private readonly baseUrl: string;

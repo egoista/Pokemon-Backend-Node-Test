@@ -24,7 +24,7 @@ describe('ImportPokemonByIdUseCase', () => {
 
         pokeApiClient = {
             getPokemonById: jest.fn(),
-        } as any; // Mock partial implementation
+        } as any;
 
         useCase = new ImportPokemonByIdUseCase(pokemonRepository, pokeApiClient);
     });
@@ -60,6 +60,11 @@ describe('ImportPokemonByIdUseCase', () => {
     it('should throw ValidationError if id is invalid', async () => {
         await expect(useCase.execute({ id: -1 })).rejects.toThrow(ValidationError);
         await expect(useCase.execute({ id: 0 })).rejects.toThrow(ValidationError);
+        expect(pokeApiClient.getPokemonById).not.toHaveBeenCalled();
+    });
+
+    it('should throw ValidationError when input is missing', async () => {
+        await expect(useCase.execute(undefined as unknown as any)).rejects.toThrow(ValidationError);
         expect(pokeApiClient.getPokemonById).not.toHaveBeenCalled();
     });
 
