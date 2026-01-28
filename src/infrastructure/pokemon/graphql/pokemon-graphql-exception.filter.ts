@@ -9,6 +9,10 @@ import {
   InvalidPokemonTypeError,
   PokemonNotFoundInExternalApiError,
   ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
   ExternalApiError,
 } from '../../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../../../application/shared/errors/application.errors';
@@ -24,6 +28,10 @@ import { ValidationError } from '../../../application/shared/errors/application.
   InvalidPokemonTypeError,
   PokemonNotFoundInExternalApiError,
   ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
   ExternalApiError,
   ValidationError,
 )
@@ -70,6 +78,34 @@ export class PokemonGraphQLExceptionFilter implements GqlExceptionFilter {
       return this.buildError(exception.message, {
         code: 'GATEWAY_TIMEOUT',
         statusCode: 504,
+      });
+    }
+
+    if (exception instanceof ExternalApiClientError) {
+      return this.buildError(exception.message, {
+        code: 'BAD_REQUEST',
+        statusCode: 400,
+      });
+    }
+
+    if (exception instanceof ExternalApiRateLimitError) {
+      return this.buildError(exception.message, {
+        code: 'TOO_MANY_REQUESTS',
+        statusCode: 429,
+      });
+    }
+
+    if (exception instanceof ExternalApiServerError) {
+      return this.buildError(exception.message, {
+        code: 'BAD_GATEWAY',
+        statusCode: 502,
+      });
+    }
+
+    if (exception instanceof ExternalApiUnavailableError) {
+      return this.buildError(exception.message, {
+        code: 'SERVICE_UNAVAILABLE',
+        statusCode: 503,
       });
     }
 

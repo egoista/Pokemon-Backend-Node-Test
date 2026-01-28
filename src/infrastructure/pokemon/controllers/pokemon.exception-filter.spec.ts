@@ -6,6 +6,13 @@ import {
   InvalidPokemonIdError,
   InvalidPokemonNameError,
   InvalidPokemonTypeError,
+  PokemonNotFoundInExternalApiError,
+  ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
+  ExternalApiError,
 } from '../../../domain/pokemon/pokemon.errors';
 import { Response } from 'express';
 
@@ -74,6 +81,54 @@ describe('PokemonHttpExceptionFilter', () => {
     const exception = new InvalidPokemonTypeError();
     filter.catch(exception, mockArgumentsHost);
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+  });
+
+  it('should catch PokemonNotFoundInExternalApiError and return NotFound', () => {
+    const exception = new PokemonNotFoundInExternalApiError(999);
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+  });
+
+  it('should catch ExternalApiTimeoutError and return GatewayTimeout', () => {
+    const exception = new ExternalApiTimeoutError();
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.GATEWAY_TIMEOUT,
+    );
+  });
+
+  it('should catch ExternalApiRateLimitError and return TooManyRequests', () => {
+    const exception = new ExternalApiRateLimitError();
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  });
+
+  it('should catch ExternalApiClientError and return BadRequest', () => {
+    const exception = new ExternalApiClientError('Bad input');
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+  });
+
+  it('should catch ExternalApiUnavailableError and return ServiceUnavailable', () => {
+    const exception = new ExternalApiUnavailableError();
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.SERVICE_UNAVAILABLE,
+    );
+  });
+
+  it('should catch ExternalApiServerError and return BadGateway', () => {
+    const exception = new ExternalApiServerError('Upstream down');
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_GATEWAY);
+  });
+
+  it('should catch ExternalApiError and return BadGateway', () => {
+    const exception = new ExternalApiError('Upstream error');
+    filter.catch(exception, mockArgumentsHost);
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_GATEWAY);
   });
 
   it('should catch generic error and return InternalServerError', () => {
