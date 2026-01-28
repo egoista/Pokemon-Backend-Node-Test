@@ -1,22 +1,55 @@
 import { PokeApiClientImpl } from './poke-api.client';
-import axios from 'axios';
+import { HttpClient } from '../common/http/http-client.interface';
+import { CacheService } from '../../domain/adapters/cache.interface';
+import { AppLogger } from '../../application/shared/logger/logger.interface';
 import {
   PokemonNotFoundInExternalApiError,
   ExternalApiTimeoutError,
-  ExternalApiError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
 } from '../../domain/pokemon/pokemon.errors';
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-
 describe('PokeApiClientImpl', () => {
-  let client: PokeApiClientImpl;
+  let httpClient: jest.Mocked<HttpClient>;
+  let cacheService: jest.Mocked<CacheService>;
+  let logger: jest.Mocked<AppLogger>;
   const originalEnv = process.env;
 
+  const buildClient = () =>
+    new PokeApiClientImpl(httpClient, cacheService, logger);
+
   beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...originalEnv };
-    client = new PokeApiClientImpl();
+    process.env = {
+      ...originalEnv,
+      POKEAPI_RETRY_MAX_ATTEMPTS: '2',
+      POKEAPI_RETRY_BASE_DELAY_MS: '0',
+      POKEAPI_RETRY_MAX_DELAY_MS: '0',
+      POKEAPI_CB_FAILURE_THRESHOLD: '2',
+      POKEAPI_CB_OPEN_MS: '10000',
+      POKEAPI_CACHE_ENABLED: 'true',
+      POKEAPI_CACHE_TTL_MS: '60000',
+    };
+
+    httpClient = {
+      get: jest.fn(),
+    } as jest.Mocked<HttpClient>;
+
+    cacheService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deletePattern: jest.fn(),
+      clear: jest.fn(),
+    } as jest.Mocked<CacheService>;
+
+    logger = {
+      info: jest.fn(),
+      error: jest.fn(),
+    } as jest.Mocked<AppLogger>;
+
+    cacheService.get.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -24,171 +57,191 @@ describe('PokeApiClientImpl', () => {
     jest.clearAllMocks();
   });
 
-  describe('getPokemonById', () => {
-    it('should successfully fetch and return Pokemon data', async () => {
-      const mockResponse = {
-        data: {
-          id: 25,
-          name: 'pikachu',
-          types: [
-            {
-              slot: 1,
-              type: {
-                name: 'electric',
-                url: 'https://pokeapi.co/api/v2/type/13/',
-              },
-            },
-          ],
-        },
-      };
-
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      const result = await client.getPokemonById(25);
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://pokeapi.co/api/v2/pokemon/25',
-        { timeout: 3000 },
-      );
-      expect(result).toEqual({
+  it('should fetch and map pokemon data', async () => {
+    const mockResponse = {
+      status: 200,
+      data: {
         id: 25,
         name: 'pikachu',
-        types: mockResponse.data.types,
-      });
+        types: [
+          {
+            slot: 1,
+            type: {
+              name: 'electric',
+              url: 'https://pokeapi.co/api/v2/type/13/',
+            },
+          },
+        ],
+      },
+    };
+
+    httpClient.get.mockResolvedValue(mockResponse);
+
+    const client = buildClient();
+    const result = await client.getPokemonById(25);
+
+    expect(httpClient.get).toHaveBeenCalledWith('/pokemon/25');
+    expect(result).toEqual({
+      id: 25,
+      name: 'pikachu',
+      types: mockResponse.data.types,
     });
+  });
 
-    it('should use configured base URL and timeout from environment variables', async () => {
-      process.env.POKEAPI_BASE_URL = 'https://custom-api.com/v1';
-      process.env.POKEAPI_TIMEOUT = '5000';
+  it('should return cached data and skip external call', async () => {
+    const cached = {
+      id: 1,
+      name: 'bulbasaur',
+      types: [],
+    };
 
-      const customClient = new PokeApiClientImpl();
+    cacheService.get.mockResolvedValue(cached);
 
-      const mockResponse = {
-        data: {
-          id: 1,
-          name: 'bulbasaur',
-          types: [],
-        },
-      };
+    const client = buildClient();
+    const result = await client.getPokemonById(1);
 
-      mockedAxios.get.mockResolvedValue(mockResponse);
+    expect(cacheService.get).toHaveBeenCalledWith('pokeapi:pokemon:id=1');
+    expect(httpClient.get).not.toHaveBeenCalled();
+    expect(result).toEqual(cached);
+  });
 
-      await customClient.getPokemonById(1);
+  it('should cache successful responses', async () => {
+    const mockResponse = {
+      status: 200,
+      data: {
+        id: 1,
+        name: 'bulbasaur',
+        types: [],
+      },
+    };
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://custom-api.com/v1/pokemon/1',
-        { timeout: 5000 },
-      );
-    });
+    httpClient.get.mockResolvedValue(mockResponse);
 
-    it('should use default values when environment variables are not set', async () => {
-      delete process.env.POKEAPI_BASE_URL;
-      delete process.env.POKEAPI_TIMEOUT;
+    const client = buildClient();
+    await client.getPokemonById(1);
 
-      const defaultClient = new PokeApiClientImpl();
+    expect(cacheService.set).toHaveBeenCalledWith(
+      'pokeapi:pokemon:id=1',
+      {
+        id: 1,
+        name: 'bulbasaur',
+        types: [],
+      },
+      60000,
+    );
+  });
 
-      const mockResponse = {
-        data: {
-          id: 1,
-          name: 'bulbasaur',
-          types: [],
-        },
-      };
-
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      await defaultClient.getPokemonById(1);
-
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://pokeapi.co/api/v2/pokemon/1',
-        { timeout: 3000 },
-      );
-    });
-
-    it('should throw PokemonNotFoundInExternalApiError on 404 response', async () => {
-      const error: any = {
-        isAxiosError: true,
-        response: {
-          status: 404,
-        },
-        message: 'Request failed with status code 404',
-      };
-
-      mockedAxios.isAxiosError.mockReturnValue(true);
-      mockedAxios.get.mockRejectedValue(error);
-
-      await expect(client.getPokemonById(99999)).rejects.toThrow(
-        PokemonNotFoundInExternalApiError,
-      );
-    });
-
-    it('should throw ExternalApiTimeoutError on timeout (ECONNABORTED)', async () => {
-      const error: any = {
-        isAxiosError: true,
-        code: 'ECONNABORTED',
-        message: 'timeout of 3000ms exceeded',
-      };
-
-      mockedAxios.isAxiosError.mockReturnValue(true);
-      mockedAxios.get.mockRejectedValue(error);
-
-      await expect(client.getPokemonById(1)).rejects.toThrow(
-        ExternalApiTimeoutError,
-      );
-    });
-
-    it('should throw ExternalApiTimeoutError when message contains "timeout"', async () => {
-      const error: any = {
-        isAxiosError: true,
-        message: 'timeout of 3000ms exceeded',
-      };
-
-      mockedAxios.isAxiosError.mockReturnValue(true);
-      mockedAxios.get.mockRejectedValue(error);
-
-      await expect(client.getPokemonById(1)).rejects.toThrow(
-        ExternalApiTimeoutError,
-      );
-    });
-
-    it('should throw ExternalApiError on other axios errors', async () => {
-      const error: any = {
-        isAxiosError: true,
-        message: 'Network Error',
-      };
-
-      mockedAxios.isAxiosError.mockReturnValue(true);
-      mockedAxios.get.mockRejectedValue(error);
-
-      await expect(client.getPokemonById(1)).rejects.toThrow(ExternalApiError);
-      await expect(client.getPokemonById(1)).rejects.toThrow('Network Error');
-    });
-
-    it('should throw ExternalApiError on unknown errors', async () => {
-      const error = new Error('Something unexpected happened');
-
-      mockedAxios.isAxiosError.mockReturnValue(false);
-      mockedAxios.get.mockRejectedValue(error);
-
-      await expect(client.getPokemonById(1)).rejects.toThrow(ExternalApiError);
-      await expect(client.getPokemonById(1)).rejects.toThrow(
-        'Unknown error occurred',
-      );
-    });
-
-    it('should throw ExternalApiError on 500 response', async () => {
-      const error: any = {
-        isAxiosError: true,
-        response: {
-          status: 500,
-        },
+  it('should retry on 5xx and succeed', async () => {
+    httpClient.get
+      .mockRejectedValueOnce({
+        response: { status: 500 },
         message: 'Internal Server Error',
-      };
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        data: { id: 4, name: 'charmander', types: [] },
+      });
 
-      mockedAxios.isAxiosError.mockReturnValue(true);
-      mockedAxios.get.mockRejectedValue(error);
+    const client = buildClient();
+    const result = await client.getPokemonById(4);
 
-      await expect(client.getPokemonById(1)).rejects.toThrow(ExternalApiError);
+    expect(httpClient.get).toHaveBeenCalledTimes(2);
+    expect(result.name).toBe('charmander');
+  });
+
+  it('should throw ExternalApiServerError after retries are exhausted', async () => {
+    httpClient.get.mockRejectedValue({
+      response: { status: 500 },
+      message: 'Internal Server Error',
     });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiServerError,
+    );
+    expect(httpClient.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw ExternalApiTimeoutError on timeout', async () => {
+    httpClient.get.mockRejectedValue({
+      code: 'ECONNABORTED',
+      message: 'timeout of 3000ms exceeded',
+    });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiTimeoutError,
+    );
+    expect(httpClient.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('should throw PokemonNotFoundInExternalApiError on 404 response', async () => {
+    httpClient.get.mockRejectedValue({
+      response: { status: 404 },
+      message: 'Not Found',
+    });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(99999)).rejects.toThrow(
+      PokemonNotFoundInExternalApiError,
+    );
+    expect(httpClient.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw ExternalApiClientError on 4xx responses', async () => {
+    httpClient.get.mockRejectedValue({
+      response: { status: 400 },
+      message: 'Bad Request',
+    });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiClientError,
+    );
+    expect(httpClient.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw ExternalApiRateLimitError on 429 responses', async () => {
+    httpClient.get.mockRejectedValue({
+      response: { status: 429 },
+      message: 'Too Many Requests',
+    });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiRateLimitError,
+    );
+    expect(httpClient.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('should open circuit after consecutive failures', async () => {
+    process.env.POKEAPI_RETRY_MAX_ATTEMPTS = '1';
+    process.env.POKEAPI_CB_FAILURE_THRESHOLD = '2';
+
+    httpClient.get.mockRejectedValue({
+      response: { status: 500 },
+      message: 'Internal Server Error',
+    });
+
+    const client = buildClient();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiServerError,
+    );
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiServerError,
+    );
+
+    httpClient.get.mockClear();
+
+    await expect(client.getPokemonById(1)).rejects.toThrow(
+      ExternalApiUnavailableError,
+    );
+    expect(httpClient.get).not.toHaveBeenCalled();
   });
 });

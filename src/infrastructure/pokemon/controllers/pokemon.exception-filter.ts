@@ -11,6 +11,13 @@ import {
   InvalidPokemonIdError,
   InvalidPokemonNameError,
   InvalidPokemonTypeError,
+  PokemonNotFoundInExternalApiError,
+  ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
+  ExternalApiError,
 } from '../../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../../../application/shared/errors/application.errors';
 
@@ -22,6 +29,13 @@ import { ValidationError } from '../../../application/shared/errors/application.
   InvalidPokemonIdError,
   InvalidPokemonNameError,
   InvalidPokemonTypeError,
+  PokemonNotFoundInExternalApiError,
+  ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
+  ExternalApiError,
   ValidationError,
 )
 export class PokemonHttpExceptionFilter implements ExceptionFilter {
@@ -38,6 +52,9 @@ export class PokemonHttpExceptionFilter implements ExceptionFilter {
     } else if (error instanceof PokemonNotFoundError) {
       status = HttpStatus.NOT_FOUND;
       message = error.message;
+    } else if (error instanceof PokemonNotFoundInExternalApiError) {
+      status = HttpStatus.NOT_FOUND;
+      message = error.message;
     } else if (
       error instanceof InvalidPokemonIdError ||
       error instanceof InvalidPokemonNameError ||
@@ -45,6 +62,24 @@ export class PokemonHttpExceptionFilter implements ExceptionFilter {
       error instanceof ValidationError
     ) {
       status = HttpStatus.BAD_REQUEST;
+      message = error.message;
+    } else if (error instanceof ExternalApiTimeoutError) {
+      status = HttpStatus.GATEWAY_TIMEOUT;
+      message = error.message;
+    } else if (error instanceof ExternalApiRateLimitError) {
+      status = HttpStatus.TOO_MANY_REQUESTS;
+      message = error.message;
+    } else if (error instanceof ExternalApiClientError) {
+      status = HttpStatus.BAD_REQUEST;
+      message = error.message;
+    } else if (error instanceof ExternalApiUnavailableError) {
+      status = HttpStatus.SERVICE_UNAVAILABLE;
+      message = error.message;
+    } else if (error instanceof ExternalApiServerError) {
+      status = HttpStatus.BAD_GATEWAY;
+      message = error.message;
+    } else if (error instanceof ExternalApiError) {
+      status = HttpStatus.BAD_GATEWAY;
       message = error.message;
     }
 

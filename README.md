@@ -36,8 +36,20 @@ npm run test:e2e    # E2E tests
 | -------- | ----- | ----------- |
 | `POKEMON_REPOSITORY` | `prisma` or `typeorm` | `prisma` |
 | `POKEAPI_BASE_URL` | External API URL | `https://pokeapi.co/api/v2` |
+| `POKEAPI_TIMEOUT` | External API timeout (ms) | `3000` |
+| `POKEAPI_ACCEPT` | External API Accept header | `application/json` |
+| `POKEAPI_USER_AGENT` | External API User-Agent | `Backend-Node-Test/1.0` |
+| `POKEAPI_RETRY_MAX_ATTEMPTS` | Max retry attempts | `2` |
+| `POKEAPI_RETRY_BASE_DELAY_MS` | Retry base backoff (ms) | `200` |
+| `POKEAPI_RETRY_MAX_DELAY_MS` | Retry max backoff (ms) | `1000` |
+| `POKEAPI_CB_FAILURE_THRESHOLD` | Circuit breaker failure threshold | `3` |
+| `POKEAPI_CB_OPEN_MS` | Circuit breaker open time (ms) | `10000` |
+| `POKEAPI_CACHE_ENABLED` | Cache external API responses | `true` |
+| `POKEAPI_CACHE_TTL_MS` | External API cache TTL (ms) | `30000` |
 | `CACHE_TTL` | Cache time-to-live (ms) | `60000` |
-| `RATE_LIMIT_MAX` | Max requests per window | `100` |
+| `CACHE_MAX_ITEMS` | Cache max items | `500` |
+| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | `100` |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit window (ms) | `60000` |
 
 ### Switching ORMs
 

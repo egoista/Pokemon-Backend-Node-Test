@@ -9,6 +9,10 @@ import {
   InvalidPokemonTypeError,
   PokemonNotFoundInExternalApiError,
   ExternalApiTimeoutError,
+  ExternalApiClientError,
+  ExternalApiRateLimitError,
+  ExternalApiServerError,
+  ExternalApiUnavailableError,
   ExternalApiError,
 } from '../../../domain/pokemon/pokemon.errors';
 import { ValidationError } from '../../../application/shared/errors/application.errors';
@@ -120,6 +124,46 @@ describe('PokemonGraphQLExceptionFilter', () => {
     expect(result.message).toContain('timed out');
     expect(result.extensions?.code).toBe('GATEWAY_TIMEOUT');
     expect(result.extensions?.statusCode).toBe(504);
+  });
+
+  it('should catch ExternalApiClientError and return GraphQLError with BAD_REQUEST', () => {
+    const exception = new ExternalApiClientError('Invalid payload');
+    const result = filter.catch(exception, mockArgumentsHost);
+
+    expect(result).toBeInstanceOf(GraphQLError);
+    expect(result.message).toContain('Invalid payload');
+    expect(result.extensions?.code).toBe('BAD_REQUEST');
+    expect(result.extensions?.statusCode).toBe(400);
+  });
+
+  it('should catch ExternalApiRateLimitError and return GraphQLError with TOO_MANY_REQUESTS', () => {
+    const exception = new ExternalApiRateLimitError();
+    const result = filter.catch(exception, mockArgumentsHost);
+
+    expect(result).toBeInstanceOf(GraphQLError);
+    expect(result.message).toContain('rate limit');
+    expect(result.extensions?.code).toBe('TOO_MANY_REQUESTS');
+    expect(result.extensions?.statusCode).toBe(429);
+  });
+
+  it('should catch ExternalApiServerError and return GraphQLError with BAD_GATEWAY', () => {
+    const exception = new ExternalApiServerError('Upstream failure');
+    const result = filter.catch(exception, mockArgumentsHost);
+
+    expect(result).toBeInstanceOf(GraphQLError);
+    expect(result.message).toContain('Upstream failure');
+    expect(result.extensions?.code).toBe('BAD_GATEWAY');
+    expect(result.extensions?.statusCode).toBe(502);
+  });
+
+  it('should catch ExternalApiUnavailableError and return GraphQLError with SERVICE_UNAVAILABLE', () => {
+    const exception = new ExternalApiUnavailableError();
+    const result = filter.catch(exception, mockArgumentsHost);
+
+    expect(result).toBeInstanceOf(GraphQLError);
+    expect(result.message).toContain('temporarily unavailable');
+    expect(result.extensions?.code).toBe('SERVICE_UNAVAILABLE');
+    expect(result.extensions?.statusCode).toBe(503);
   });
 
   it('should catch ExternalApiError and return GraphQLError with BAD_GATEWAY', () => {
