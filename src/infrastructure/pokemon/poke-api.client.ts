@@ -26,13 +26,15 @@ import {
 // ARCH: External API adapter implementing the PokeApiClient port.
 @Injectable()
 export class PokeApiClientImpl implements PokeApiClient {
-  private readonly retryMaxAttempts: number;
-  private readonly retryBaseDelayMs: number;
-  private readonly retryMaxDelayMs: number;
-  private readonly cacheEnabled: boolean;
-  private readonly cacheTtlMs: number;
-  private readonly circuitFailureThreshold: number;
-  private readonly circuitOpenMs: number;
+  private readonly config: {
+    retryMaxAttempts: number;
+    retryBaseDelayMs: number;
+    retryMaxDelayMs: number;
+    cacheEnabled: boolean;
+    cacheTtlMs: number;
+    circuitFailureThreshold: number;
+    circuitOpenMs: number;
+  };
   private consecutiveFailures = 0;
   private circuitOpenUntil: number | null = null;
   private halfOpen = false;
@@ -42,70 +44,54 @@ export class PokeApiClientImpl implements PokeApiClient {
     @Inject(CacheService) private readonly cacheService: CacheService,
     @Inject(APP_LOGGER) private readonly logger: AppLogger = new NullLogger(),
   ) {
-    this.retryMaxAttempts = this.getNumberEnv(
-      'POKEAPI_RETRY_MAX_ATTEMPTS',
-      2,
-      1,
-    );
-    this.retryBaseDelayMs = this.getNumberEnv(
-      'POKEAPI_RETRY_BASE_DELAY_MS',
-      200,
-      0,
-    );
-    this.retryMaxDelayMs = this.getNumberEnv(
-      'POKEAPI_RETRY_MAX_DELAY_MS',
-      1000,
-      0,
-    );
-    this.cacheEnabled = this.getBooleanEnv('POKEAPI_CACHE_ENABLED', true);
-    this.cacheTtlMs = this.getNumberEnv('POKEAPI_CACHE_TTL_MS', 30000, 0);
-    this.circuitFailureThreshold = this.getNumberEnv(
-      'POKEAPI_CB_FAILURE_THRESHOLD',
-      3,
-      1,
-    );
-    this.circuitOpenMs = this.getNumberEnv('POKEAPI_CB_OPEN_MS', 10000, 0);
+    this.config = this.loadConfig();
   }
 
   async getPokemonById(id: number): Promise<PokeApiPokemonDto> {
     const endpoint = `/pokemon/${id}`;
     const cacheKey = `pokeapi:pokemon:id=${id}`;
-
-    if (this.cacheEnabled) {
-      const cached = await this.cacheService.get<PokeApiPokemonDto>(cacheKey);
-      if (cached) {
-        this.logger.info('pokeapi.cache.hit', { endpoint });
-        return cached;
-      }
+    const cached = await this.getCachedPokemon(cacheKey, endpoint);
+    if (cached) {
+      return cached;
     }
 
     const startTime = Date.now();
+    return this.fetchWithRetry(id, endpoint, cacheKey, startTime);
+  }
 
-    for (let attempt = 1; attempt <= this.retryMaxAttempts; attempt++) {
+  private async getCachedPokemon(
+    cacheKey: string,
+    endpoint: string,
+  ): Promise<PokeApiPokemonDto | null> {
+    if (!this.config.cacheEnabled) {
+      return null;
+    }
+
+    const cached = await this.cacheService.get<PokeApiPokemonDto>(cacheKey);
+    if (cached) {
+      this.logger.info('pokeapi.cache.hit', { endpoint });
+      return cached;
+    }
+    return null;
+  }
+
+  private async fetchWithRetry(
+    id: number,
+    endpoint: string,
+    cacheKey: string,
+    startTime: number,
+  ): Promise<PokeApiPokemonDto> {
+    for (let attempt = 1; attempt <= this.config.retryMaxAttempts; attempt++) {
       this.ensureCircuitClosed(endpoint);
 
       try {
         const response = await this.httpClient.get<PokeApiPokemonDto>(endpoint);
         this.recordSuccess(endpoint);
 
-        const result = {
-          id: response.data.id,
-          name: response.data.name,
-          types: response.data.types,
-        };
+        const result = this.mapPokemonResponse(response.data);
+        await this.cacheIfEnabled(cacheKey, result);
 
-        if (this.cacheEnabled && this.cacheTtlMs > 0) {
-          await this.cacheService.set(cacheKey, result, this.cacheTtlMs);
-        }
-
-        const durationMs = Date.now() - startTime;
-        this.logger.info('pokeapi.request.success', {
-          endpoint,
-          status: response.status,
-          durationMs,
-          attempts: attempt,
-        });
-
+        this.logSuccess(endpoint, response.status, startTime, attempt);
         return result;
       } catch (error: unknown) {
         const normalized = this.normalizeError(error);
@@ -115,35 +101,85 @@ export class PokeApiClientImpl implements PokeApiClient {
 
         const shouldRetry =
           this.isRetryable(normalized) &&
-          attempt < this.retryMaxAttempts &&
+          attempt < this.config.retryMaxAttempts &&
           !circuitOpened;
 
         if (shouldRetry) {
           const delayMs = this.calculateBackoff(attempt);
-          this.logger.info('pokeapi.request.retry', {
-            endpoint,
-            attempt,
-            delayMs,
-            status: normalized.status,
-            code: normalized.code,
-          });
+          this.logRetry(endpoint, attempt, delayMs, normalized);
           await this.sleep(delayMs);
           continue;
         }
 
-        const durationMs = Date.now() - startTime;
-        this.logger.error('pokeapi.request.failed', {
-          endpoint,
-          status: normalized.status,
-          durationMs,
-          attempts: attempt,
-          code: normalized.code,
-        });
+        this.logFailure(endpoint, startTime, attempt, normalized);
         throw this.mapToDomainError(normalized, id);
       }
     }
 
     throw new ExternalApiError('Unknown error occurred');
+  }
+
+  private mapPokemonResponse(data: PokeApiPokemonDto): PokeApiPokemonDto {
+    return {
+      id: data.id,
+      name: data.name,
+      types: data.types,
+    };
+  }
+
+  private async cacheIfEnabled(
+    cacheKey: string,
+    result: PokeApiPokemonDto,
+  ): Promise<void> {
+    if (this.config.cacheEnabled && this.config.cacheTtlMs > 0) {
+      await this.cacheService.set(cacheKey, result, this.config.cacheTtlMs);
+    }
+  }
+
+  private logSuccess(
+    endpoint: string,
+    status: number,
+    startTime: number,
+    attempt: number,
+  ): void {
+    const durationMs = Date.now() - startTime;
+    this.logger.info('pokeapi.request.success', {
+      endpoint,
+      status,
+      durationMs,
+      attempts: attempt,
+    });
+  }
+
+  private logRetry(
+    endpoint: string,
+    attempt: number,
+    delayMs: number,
+    normalized: { status?: number; code?: string },
+  ): void {
+    this.logger.info('pokeapi.request.retry', {
+      endpoint,
+      attempt,
+      delayMs,
+      status: normalized.status,
+      code: normalized.code,
+    });
+  }
+
+  private logFailure(
+    endpoint: string,
+    startTime: number,
+    attempt: number,
+    normalized: { status?: number; code?: string },
+  ): void {
+    const durationMs = Date.now() - startTime;
+    this.logger.error('pokeapi.request.failed', {
+      endpoint,
+      status: normalized.status,
+      durationMs,
+      attempts: attempt,
+      code: normalized.code,
+    });
   }
 
   private ensureCircuitClosed(endpoint: string): void {
@@ -179,7 +215,7 @@ export class PokeApiClientImpl implements PokeApiClient {
     }
 
     this.consecutiveFailures += 1;
-    if (this.consecutiveFailures >= this.circuitFailureThreshold) {
+    if (this.consecutiveFailures >= this.config.circuitFailureThreshold) {
       return this.openCircuit(endpoint);
     }
 
@@ -187,7 +223,7 @@ export class PokeApiClientImpl implements PokeApiClient {
   }
 
   private openCircuit(endpoint: string): boolean {
-    this.circuitOpenUntil = Date.now() + this.circuitOpenMs;
+    this.circuitOpenUntil = Date.now() + this.config.circuitOpenMs;
     this.consecutiveFailures = 0;
     this.halfOpen = false;
     this.logger.error('pokeapi.circuit.open', {
@@ -269,8 +305,8 @@ export class PokeApiClientImpl implements PokeApiClient {
   }
 
   private calculateBackoff(attempt: number): number {
-    const delay = this.retryBaseDelayMs * Math.pow(2, attempt - 1);
-    return Math.min(delay, this.retryMaxDelayMs);
+    const delay = this.config.retryBaseDelayMs * Math.pow(2, attempt - 1);
+    return Math.min(delay, this.config.retryMaxDelayMs);
   }
 
   private async sleep(delayMs: number): Promise<void> {
@@ -295,5 +331,41 @@ export class PokeApiClientImpl implements PokeApiClient {
       return fallback;
     }
     return ['true', '1', 'yes'].includes(raw.toLowerCase());
+  }
+
+  private loadConfig(): {
+    retryMaxAttempts: number;
+    retryBaseDelayMs: number;
+    retryMaxDelayMs: number;
+    cacheEnabled: boolean;
+    cacheTtlMs: number;
+    circuitFailureThreshold: number;
+    circuitOpenMs: number;
+  } {
+    return {
+      retryMaxAttempts: this.getNumberEnv(
+        'POKEAPI_RETRY_MAX_ATTEMPTS',
+        2,
+        1,
+      ),
+      retryBaseDelayMs: this.getNumberEnv(
+        'POKEAPI_RETRY_BASE_DELAY_MS',
+        200,
+        0,
+      ),
+      retryMaxDelayMs: this.getNumberEnv(
+        'POKEAPI_RETRY_MAX_DELAY_MS',
+        1000,
+        0,
+      ),
+      cacheEnabled: this.getBooleanEnv('POKEAPI_CACHE_ENABLED', true),
+      cacheTtlMs: this.getNumberEnv('POKEAPI_CACHE_TTL_MS', 30000, 0),
+      circuitFailureThreshold: this.getNumberEnv(
+        'POKEAPI_CB_FAILURE_THRESHOLD',
+        3,
+        1,
+      ),
+      circuitOpenMs: this.getNumberEnv('POKEAPI_CB_OPEN_MS', 10000, 0),
+    };
   }
 }
