@@ -343,21 +343,13 @@ export class PokeApiClientImpl implements PokeApiClient {
     circuitOpenMs: number;
   } {
     return {
-      retryMaxAttempts: this.getNumberEnv(
-        'POKEAPI_RETRY_MAX_ATTEMPTS',
-        2,
-        1,
-      ),
+      retryMaxAttempts: this.getNumberEnv('POKEAPI_RETRY_MAX_ATTEMPTS', 2, 1),
       retryBaseDelayMs: this.getNumberEnv(
         'POKEAPI_RETRY_BASE_DELAY_MS',
         200,
         0,
       ),
-      retryMaxDelayMs: this.getNumberEnv(
-        'POKEAPI_RETRY_MAX_DELAY_MS',
-        1000,
-        0,
-      ),
+      retryMaxDelayMs: this.getNumberEnv('POKEAPI_RETRY_MAX_DELAY_MS', 1000, 0),
       cacheEnabled: this.getBooleanEnv('POKEAPI_CACHE_ENABLED', true),
       cacheTtlMs: this.getNumberEnv('POKEAPI_CACHE_TTL_MS', 30000, 0),
       circuitFailureThreshold: this.getNumberEnv(
