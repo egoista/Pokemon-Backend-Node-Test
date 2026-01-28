@@ -18,7 +18,10 @@ import {
   APP_LOGGER,
   POKE_API_HTTP_CLIENT,
 } from '../../application/shared/di.tokens';
-import { AppLogger, NullLogger } from '../../application/shared/logger/logger.interface';
+import {
+  AppLogger,
+  NullLogger,
+} from '../../application/shared/logger/logger.interface';
 
 // ARCH: External API adapter implementing the PokeApiClient port.
 @Injectable()
@@ -207,8 +210,8 @@ export class PokeApiClientImpl implements PokeApiClient {
         ? (error as { code: string }).code
         : undefined;
     const status =
-      typeof (error as { response?: { status?: unknown } })?.response?.status ===
-      'number'
+      typeof (error as { response?: { status?: unknown } })?.response
+        ?.status === 'number'
         ? (error as { response: { status: number } }).response.status
         : undefined;
     const isTimeout =
@@ -277,11 +280,7 @@ export class PokeApiClientImpl implements PokeApiClient {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
 
-  private getNumberEnv(
-    key: string,
-    fallback: number,
-    min: number,
-  ): number {
+  private getNumberEnv(key: string, fallback: number, min: number): number {
     const raw = process.env[key];
     const parsed = Number(raw);
     if (!Number.isFinite(parsed)) {

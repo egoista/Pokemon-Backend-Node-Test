@@ -16,7 +16,9 @@ export class NestHttpClient implements HttpClient {
     url: string,
     options?: HttpRequestOptions,
   ): Promise<HttpResponse<T>> {
-    const response = await firstValueFrom(this.httpService.get<T>(url, options));
+    const response = await firstValueFrom(
+      this.httpService.get<T>(url, options),
+    );
     return {
       status: response.status,
       data: response.data,
@@ -26,7 +28,9 @@ export class NestHttpClient implements HttpClient {
 
   private normalizeHeaders(
     headers: unknown,
-  ): Record<string, string | string[] | number | boolean | undefined> | undefined {
+  ):
+    | Record<string, string | string[] | number | boolean | undefined>
+    | undefined {
     if (!headers) {
       return undefined;
     }

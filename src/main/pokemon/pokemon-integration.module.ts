@@ -16,7 +16,8 @@ import { NestHttpClient } from '../../infrastructure/common/http/nest-http.clien
         timeout: parseInt(process.env.POKEAPI_TIMEOUT ?? '3000', 10),
         headers: {
           Accept: process.env.POKEAPI_ACCEPT ?? 'application/json',
-          'User-Agent': process.env.POKEAPI_USER_AGENT ?? 'Backend-Node-Test/1.0',
+          'User-Agent':
+            process.env.POKEAPI_USER_AGENT ?? 'Backend-Node-Test/1.0',
         },
       }),
     }),

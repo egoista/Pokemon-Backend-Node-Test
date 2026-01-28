@@ -92,7 +92,9 @@ describe('PokemonHttpExceptionFilter', () => {
   it('should catch ExternalApiTimeoutError and return GatewayTimeout', () => {
     const exception = new ExternalApiTimeoutError();
     filter.catch(exception, mockArgumentsHost);
-    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.GATEWAY_TIMEOUT);
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.GATEWAY_TIMEOUT,
+    );
   });
 
   it('should catch ExternalApiRateLimitError and return TooManyRequests', () => {
